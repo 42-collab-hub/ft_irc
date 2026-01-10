@@ -2,7 +2,9 @@ NAME =		ircserv
 CXX =		c++
 CXXFLAGS =	-Wall -Wextra -Werror -std=c++98 -I includes
 
-SRC	= 		main.cpp
+SRC	= 		main.cpp \
+			args.cpp
+
 OBJDIR = 	obj
 OBJ = 		$(SRC:%.cpp=$(OBJDIR)/%.o)
 
