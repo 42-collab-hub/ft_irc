@@ -3,7 +3,11 @@ CXX =		c++
 CXXFLAGS =	-Wall -Wextra -Werror -std=c++98 -I includes
 
 SRC	= 		main.cpp \
-			args.cpp
+			args.cpp \
+			Server.cpp \
+			Client.cpp \
+			Channel.cpp \
+			Message.cpp \
 
 OBJDIR = 	obj
 OBJ = 		$(SRC:%.cpp=$(OBJDIR)/%.o)

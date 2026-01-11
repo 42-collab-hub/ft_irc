@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:31:03 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/10 17:50:05 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/11 13:35:16 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,8 @@ int main(int argc, char **argv)
 		// reply to client
 
 	// Create Server
-	// Server server(port, password);
+	Server server(port, password);
+	server.run();
 	
 	return 0;
 }
