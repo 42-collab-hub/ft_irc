@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/11 20:40:55 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/13 15:31:01 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,17 +18,21 @@
 #include <string>
 #include <map>
 #include "Client.hpp"
+#include <poll.h>
 
 class Server {
 private:
-	// int						_fd;
+	int						_listenSocket;
 	int						_port;
 	std::string				_password;
-	// std::map<int, Client*> 	_clients;
-	// std::vector<pollfd> 	poll_fds;
+	std::map<int, Client*> 	_clients;
+	std::vector<pollfd> 	_poll_fds;
 	// channels
 
-	bool setupServerSock(int& fd, struct sockaddr_in& address);
+	bool setupServerSocket(void);
+	void handleNewConnection(void);
+	void handleClientMessage(int fd);
+	void removeClient(int fd);
 
 public:
 	Server(int port, const std::string& password);
