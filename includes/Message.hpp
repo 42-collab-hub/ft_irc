@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 08:32:00 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/13 22:32:26 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/16 18:30:11 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,12 @@
 
 class Message {
 public:
-	std::string 				prefix_;
-	std::string					command_;
-	std::vector<std::string>	params;
+	std::string 				_prefix;
+	std::string					_command;
+	std::vector<std::string>	_params;
+
+	Message();
+	~Message();
 
 	void parse(const std::string& raw);
 };

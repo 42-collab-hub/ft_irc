@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 08:38:00 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/13 22:18:00 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/17 12:35:50 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,13 +22,18 @@ private:
 	std::string				_nickname;
 	std::string				_username;
 	std::string				_hostname;
-	// int						_auth; // authentification state
-	// receive buffer (for partial messages)
+	// bool					_autheticated; // client authentification state
+	// bool					_registered; // client registration state
+	std::string				_recvBuffer; // receive buffer (for partial messages)
 	// channels
 	
 public:
 	Client(int fd);
 	~Client();
+
+	void appendToBuffer(const char* data, size_t len);
+	bool hasCompleteMessage() const;
+	std::string extractMessage();
 };
 
 #endif

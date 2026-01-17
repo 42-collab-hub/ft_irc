@@ -6,11 +6,13 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/13 15:31:17 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/17 12:32:02 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include "Message.hpp"
+#include "Client.hpp"
 #include <iostream>
 #include <cstring> // std::strlen
 #include <sys/socket.h> // socket() setsockopt()
@@ -18,7 +20,6 @@
 #include <unistd.h> // close
 #include <cerrno> // errno
 #include <poll.h> // poll()
-#include "Client.hpp"
 #include <algorithm> // std::find
 
 Server::Server(int port, const std::string& password) : _port(port), _password(password) {
@@ -89,13 +90,10 @@ void Server::handleNewConnection(void) {
 }
 
 void Server::handleClientMessage(int fd) {
-	std::cout << "Socket " << fd << " has data" << std::endl;
-	
 	char buffer[1024];
 	memset(buffer, 0, sizeof(buffer));
-
-	// read message from client
-	int readBytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
+	// TODO: handle blocking of recv with fcntl
+	ssize_t readBytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
 	if (readBytes < 0) { // reading error
 		return (removeClient(fd));
@@ -103,13 +101,24 @@ void Server::handleClientMessage(int fd) {
 	}
 	if (readBytes == 0)
 		return (removeClient(fd));
-	
+
 	buffer[readBytes] = '\0';
-	std::cout << "Client " << fd << " says: " << buffer << std::endl;
+
+	// TODO: handle max length limit -> truncate to 512 / send error message / ignore
+
+	Client* client = _clients[fd];
+	client->appendToBuffer(buffer, readBytes);
+	while (client->hasCompleteMessage()) {
+		std::string raw = client->extractMessage(); // extract single message
+		std::cout  << "Processing: " << raw << std::endl;
+		Message msg;
+		msg.parse(raw); // parse single message
+		// execute single command
+	}
 
 	// TODO: Parse & handle IRC commands
-	// parseMessage()
-	// executeCommand(_clients[fd], message);
+	// parse message
+	// execute one command - executeCommand(_clients[fd], message);
 }
 
 void Server::removeClient(int fd) {
@@ -159,3 +168,7 @@ void Server::run() {
 		}
 	}
 }
+
+
+// ________________________
+
