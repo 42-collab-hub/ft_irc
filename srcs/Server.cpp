@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/17 12:32:02 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/18 18:43:36 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 #include <unistd.h> // close
 #include <cerrno> // errno
 #include <poll.h> // poll()
-#include <algorithm> // std::find
+#include <sstream> // std::ostringstream
 
 Server::Server(int port, const std::string& password) : _port(port), _password(password) {
 }
@@ -108,17 +108,21 @@ void Server::handleClientMessage(int fd) {
 
 	Client* client = _clients[fd];
 	client->appendToBuffer(buffer, readBytes);
+
 	while (client->hasCompleteMessage()) {
 		std::string raw = client->extractMessage(); // extract single message
 		std::cout  << "Processing: " << raw << std::endl;
 		Message msg;
 		msg.parse(raw); // parse single message
-		// execute single command
-	}
+		
+		handleCommand(client, msg); // execute single command
 
-	// TODO: Parse & handle IRC commands
-	// parse message
-	// execute one command - executeCommand(_clients[fd], message);
+		if (_clients.find(fd) == _clients.end()) { // Client was disconnected due to error - stop processing
+			std::cout << "Client removed, stopping message processing" << std::endl;
+			return;
+		}
+		client = _clients[fd];
+	}
 }
 
 void Server::removeClient(int fd) {
@@ -169,6 +173,30 @@ void Server::run() {
 	}
 }
 
+// Command Handling
+void Server::sendToClient(int fd, const std::string& message) {
+	std::string msg = message + "\r\n";
+	send(fd, msg.c_str(), msg.length(), 0);
+}
 
-// ________________________
+void Server::sendError(Client* client, int code, const std::string& message) {
+	std::string target;
 
+	if (client->getNickname().empty())
+		target = "*";
+	else
+		target = client->getNickname();
+	
+	std::ostringstream oss;
+	oss << ":server " << code << " " << target << " :" << message;
+	sendToClient(client->getFd(), oss.str());
+}
+
+void Server::handleCommand(Client* client, const Message& msg) {
+	std::string cmd = msg._command;
+
+	if (cmd == "PASS")
+		handlePass(client, msg);
+	else
+		std::cout << "Command not implemented: " << cmd << std::endl;
+}

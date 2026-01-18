@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/13 15:31:01 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/18 18:42:03 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <map>
 #include "Client.hpp"
 #include <poll.h>
+#include "Message.hpp"
 
 class Server {
 private:
@@ -33,11 +34,15 @@ private:
 	void handleNewConnection(void);
 	void handleClientMessage(int fd);
 	void removeClient(int fd);
+	
+	void handleCommand(Client* client, const Message& msg);
+	void sendToClient(int fd, const std::string& message);
+	void sendError(Client* client, int code, const std::string& message);
+	void handlePass(Client* client, const Message& msg);
 
 public:
 	Server(int port, const std::string& password);
 	~Server();
-	
 	void run();
 };
 

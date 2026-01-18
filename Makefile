@@ -6,8 +6,9 @@ SRC	= 		main.cpp \
 			args.cpp \
 			Server.cpp \
 			Client.cpp \
-			Channel.cpp \
 			Message.cpp \
+			commands/PASS.cpp
+# 			Channel.cpp
 
 OBJDIR = 	obj
 OBJ = 		$(SRC:%.cpp=$(OBJDIR)/%.o)

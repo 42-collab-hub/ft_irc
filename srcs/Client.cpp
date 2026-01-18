@@ -6,13 +6,13 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 10:45:13 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/17 12:35:37 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/18 18:11:34 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
-Client::Client(int fd) : _fd(fd), _nickname(""), _username(""), _hostname(""), _recvBuffer("") {}
+Client::Client(int fd) : _fd(fd), _nickname(""), _username(""), _hostname(""), _recvBuffer(""), _autheticated(false), _registered(false) {}
 Client::~Client() {}
 
 void Client::appendToBuffer(const char* data, size_t len) {
@@ -31,3 +31,15 @@ std::string Client::extractMessage() {
 	_recvBuffer.erase(0, pos + 2); // remove from buffer including \r\n
 	return message;
 }
+
+void Client::setAuthenticated(bool status) { _autheticated = status; }
+void Client::setRegister(bool status) { _registered = status; }
+void Client::setNickname(const std::string& str) { _nickname = str; }
+void Client::setUsername(const std::string& str) { _username = str; }
+
+bool Client::isAuthenticated(void) { return _autheticated; }
+bool Client::isRegistered(void) { return _registered; }
+const std::string& Client::getNickname(void) { return this->_nickname; } 
+int Client::getFd(void) { return this->_fd; }
+
+
