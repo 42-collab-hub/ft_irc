@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/18 18:43:36 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/18 20:19:57 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,7 @@ void Server::handleNewConnection(void) {
 		std::cerr << "Error: Failed to accept connection: " << strerror(errno) << std::endl;
 		return ;
 	}
+
 	Client* newClient = new Client(clientFd);
 	_clients[clientFd] = newClient;
 	pollfd clientPollFd = {clientFd, POLLIN, 0};
@@ -197,6 +198,12 @@ void Server::handleCommand(Client* client, const Message& msg) {
 
 	if (cmd == "PASS")
 		handlePass(client, msg);
+	// else if (cmd == "CAP")
+	// 	handleCap(client, msg);
+	else if (cmd == "NICK")
+		handleNick(client, msg);
+	else if (cmd == "USER")
+		handleUser(client, msg);
 	else
 		std::cout << "Command not implemented: " << cmd << std::endl;
 }

@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/18 18:42:03 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/18 20:24:05 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,8 @@
 #include "Client.hpp"
 #include <poll.h>
 #include "Message.hpp"
+
+#define USERLEN 12
 
 class Server {
 private:
@@ -39,6 +41,11 @@ private:
 	void sendToClient(int fd, const std::string& message);
 	void sendError(Client* client, int code, const std::string& message);
 	void handlePass(Client* client, const Message& msg);
+	// void handleCap(Client* client, const Message& msg);
+	// void handleNick(Client* client, const Message& msg);
+	void handleUser(Client* client, const Message& msg);
+	void checkRegistration(Client* client);
+	// void sendWelcome(Client* client);
 
 public:
 	Server(int port, const std::string& password);

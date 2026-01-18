@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 08:38:00 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/18 18:29:17 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/18 19:28:19 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ private:
 	std::string			_nickname;
 	std::string			_username;
 	std::string			_hostname;
+	std::string			_realname;
 	std::string			_recvBuffer; // receive buffer (for partial messages)
 	bool				_autheticated; // client authentification state
 	bool				_registered; // client registration state
@@ -41,10 +42,15 @@ public:
 	void 				setRegister(bool status);
 	void 				setNickname(const std::string& str);
 	void 				setUsername(const std::string& str);
-
+	void				setRealname(const std::string& str);
+	void				setHostname(const std::string& str);
+	
 	bool 				isAuthenticated(void);
 	bool 				isRegistered(void);
-	const std::string& 	getNickname(void); 
+	const std::string& 	getNickname(void);
+	const std::string& 	getUsername(void); 
+	const std::string& 	getRealname(void);
+	const std::string& 	getHostname(void);
 	int 				getFd(void);
 };
 

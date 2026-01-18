@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 10:45:13 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/18 18:11:34 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/18 19:29:11 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,10 +36,17 @@ void Client::setAuthenticated(bool status) { _autheticated = status; }
 void Client::setRegister(bool status) { _registered = status; }
 void Client::setNickname(const std::string& str) { _nickname = str; }
 void Client::setUsername(const std::string& str) { _username = str; }
+void Client::setRealname(const std::string& str) { _realname = str; }
+void Client::setHostname(const std::string& str) { _hostname = str; }
+
 
 bool Client::isAuthenticated(void) { return _autheticated; }
 bool Client::isRegistered(void) { return _registered; }
-const std::string& Client::getNickname(void) { return this->_nickname; } 
+const std::string& Client::getNickname(void) { return _nickname; }
+const std::string& Client::getUsername(void) { return _username; } 
+const std::string& Client::getRealname(void) { return _realname; }
+const std::string& Client::getHostname(void) { return _hostname; }
+
 int Client::getFd(void) { return this->_fd; }
 
 
