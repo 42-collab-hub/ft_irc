@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/13 15:31:17 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/19 12:26:06 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,23 +18,32 @@
 #include <unistd.h> // close
 #include <cerrno> // errno
 #include <poll.h> // poll()
-#include "Client.hpp"
-#include <algorithm> // std::find
+#include <sstream> // std::ostringstream
+#include <signal.h> // signal()
+#include <stdlib.h> // exit()
+
+Server* Server::_instance = NULL;
 
 Server::Server(int port, const std::string& password) : _port(port), _password(password) {
+	_instance = this;
+	_running = true;
 }
+// initialize the other variables as well
 
 Server::~Server() {
 	close(_listenSocket);
-	for (size_t i = 0; i < _poll_fds.size(); i++)
-		close(_poll_fds[i].fd);
+    // Close all client sockets and free memory
+    for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+        close(it->first);
+        delete it->second;
+    }
+    _clients.clear();
+	_poll_fds.clear();
 }
 
-// Setup listening socket - accepts new connections from clients
-bool Server::setupServerSocket(void) {
+bool Server::init() {
 	// struct sockaddr_in address; // structure describing an Internet socket address
 	struct sockaddr_in address;
-	// int addrlen = sizeof(address);
 
 	_listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_listenSocket < 0) {
@@ -52,7 +61,6 @@ bool Server::setupServerSocket(void) {
 	address.sin_addr.s_addr = INADDR_ANY; // 0.0.0.0 listen on all interfaces
 	address.sin_port = htons(_port); // convert from host byte order to network byte order
 
-	// int addrlen = sizeof(address);
 	if (bind(_listenSocket, (sockaddr*)&address, sizeof(address)) < 0) { 	// bind socket + error handling
 		std::cerr << "Error: failed to bind socket: " << strerror(errno) << std::endl;
 		close(_listenSocket);
@@ -97,13 +105,8 @@ void Server::handleClientMessage(int fd) {
 	// read message from client
 	int readBytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
-	if (readBytes < 0) { // reading error
+	if (readBytes <= 0) // reading error / client disconnected
 		return (removeClient(fd));
-		std::cerr << "Error: Failed to read from client: " << strerror(errno) << std::endl;
-	}
-	if (readBytes == 0)
-		return (removeClient(fd));
-	
 	buffer[readBytes] = '\0';
 	std::cout << "Client " << fd << " says: " << buffer << std::endl;
 
@@ -112,27 +115,10 @@ void Server::handleClientMessage(int fd) {
 	// executeCommand(_clients[fd], message);
 }
 
-void Server::removeClient(int fd) {
-	std::map<int, Client*>::iterator it = _clients.find(fd); // delete Client object
-	if (it != _clients.end()) {
-		delete it->second;
-		_clients.erase(it);
-	}
-	for (size_t i = 0; i < _poll_fds.size(); i++) { // remove Client fd from pollfd vector
-		if (_poll_fds[i].fd == fd) {
-			_poll_fds.erase(_poll_fds.begin() + i);
-			break;
-		}
-	}
-	close(fd);
-	std::cout << "Client " << fd << " disconnected and successfully removed" << std::endl;
-}
-
 void Server::run() {
-	if (!setupServerSocket())
-		return;
+    registerSignalHandlers(); // Register signal handlers
 
-	while (true) {
+	while (_running) {
 		int ready = poll(_poll_fds.data(), _poll_fds.size(), -1);
 		if (ready < 0) // poll error
 			break;			
@@ -158,4 +144,53 @@ void Server::run() {
 			}
 		}
 	}
+	shutdownServer();
+}
+
+void Server::shutdownServer() {
+	// send shutdown message to clients
+	std::string message = "ERROR :Server shutting down\r\n";
+	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+		int fd = it->first;
+		send(fd, message.c_str(), message.length(), 0);
+	}
+}
+
+// client removal upon disconnection
+void Server::removeClient(int fd) {
+	std::map<int, Client*>::iterator it = _clients.find(fd); // delete Client object
+	if (it != _clients.end()) {
+		delete it->second;
+		_clients.erase(it);
+	}
+	for (size_t i = 0; i < _poll_fds.size(); i++) { // remove Client fd from pollfd vector
+		if (_poll_fds[i].fd == fd) {
+			_poll_fds.erase(_poll_fds.begin() + i);
+			break;
+		}
+	}
+	close(fd);
+	std::cout << "Client " << fd << " disconnected and successfully removed" << std::endl;
+}
+
+void Server::registerSignalHandlers(void) {
+    signal(SIGINT, Server::signalHandler);
+    signal(SIGTERM, Server::signalHandler);
+    signal(SIGQUIT, Server::signalHandler);
+}
+
+void Server::signalHandler(int signum) {
+	std::cout << "\nSignal detected: ";
+    switch(signum) {
+        case SIGINT:
+			std::cout << " (SIGINT - Ctrl+C)\n"; break;
+        case SIGTERM:
+			std::cout << " (SIGTERM)\n"; break;
+        case SIGQUIT:
+			std::cout << " (SIGQUIT - Ctrl+\\)\n"; break;
+        default:
+			std::cout << " (Unknown)\n"; break;
+    }
+    if (_instance)
+		_instance->_running = false;
 }
