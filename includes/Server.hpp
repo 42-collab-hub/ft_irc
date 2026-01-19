@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/18 20:24:05 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/19 12:03:06 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,9 @@ private:
 	std::vector<pollfd> 	_poll_fds;
 	// channels
 
-	bool setupServerSocket(void);
+	static Server*			_instance; // static pointer to the Server object
+	bool					_running; // main loop flag
+
 	void handleNewConnection(void);
 	void handleClientMessage(int fd);
 	void removeClient(int fd);
@@ -42,15 +44,22 @@ private:
 	void sendError(Client* client, int code, const std::string& message);
 	void handlePass(Client* client, const Message& msg);
 	// void handleCap(Client* client, const Message& msg);
-	// void handleNick(Client* client, const Message& msg);
+	void handleNick(Client* client, const Message& msg);
 	void handleUser(Client* client, const Message& msg);
 	void checkRegistration(Client* client);
 	// void sendWelcome(Client* client);
+
+	// signal handling
+	static void registerSignalHandlers(void);
+	static void signalHandler(int signum);
+
+	void shutdownServer(void);
 
 public:
 	Server(int port, const std::string& password);
 	~Server();
 	void run();
+	bool init();
 };
 
 #endif
