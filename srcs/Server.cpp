@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/19 12:46:24 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/20 12:40:36 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,8 @@ void Server::handleNewConnection(void) {
 		std::cerr << "Error: Failed to accept connection: " << strerror(errno) << std::endl;
 		return ;
 	}
-	Client* newClient = new Client(clientFd);
+	std::string hostname = inet_ntoa(address.sin_addr);
+	Client* newClient = new Client(clientFd, hostname);
 	_clients[clientFd] = newClient;
 	pollfd clientPollFd = {clientFd, POLLIN, 0};
 	_poll_fds.push_back(clientPollFd);
@@ -135,8 +136,8 @@ void Server::run() {
 	while (_running) {
 		int ready = poll(_poll_fds.data(), _poll_fds.size(), -1);
 		if (ready < 0) // poll error
-			break;			
-		
+			break;
+
 		for (size_t i = 0; i < _poll_fds.size(); i++) { // check each monitored fd at a time
 			int fd = _poll_fds[i].fd;
 			short revents = _poll_fds[i].revents;
@@ -209,7 +210,6 @@ void Server::signalHandler(int signum) {
 		_instance->_running = false;
 }
 
-
 // Command Handling
 void Server::sendToClient(int fd, const std::string& message) {
 	std::string msg = message + "\r\n";
@@ -236,8 +236,8 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		handlePass(client, msg);
 	// else if (cmd == "CAP")
 	// 	handleCap(client, msg);
-	// else if (cmd == "NICK")
-	// 	handleNick(client, msg);
+	else if (cmd == "NICK")
+		handleNick(client, msg);
 	else if (cmd == "USER")
 		handleUser(client, msg);
 	else

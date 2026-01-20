@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 08:38:00 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/18 19:28:19 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/20 12:27:28 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ private:
 	// channels
 	
 public:
-	Client(int fd);
+	Client(int fd, const std::string& hostname);
 	~Client();
 
 	// message parsing & validation methods
