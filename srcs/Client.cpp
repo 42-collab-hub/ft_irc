@@ -6,13 +6,13 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 10:45:13 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/20 12:46:28 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/20 14:36:41 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
-Client::Client(int fd, const std::string& hostname) : _fd(fd), _hostname(hostname), _nickname(""), _username(""), _recvBuffer(""), _autheticated(false), _registered(false) {}
+Client::Client(int fd, const std::string& hostname) : _fd(fd), _nickname(""), _username(""), _hostname(hostname), _recvBuffer(""), _autheticated(false), _registered(false) {}
 Client::~Client() {}
 
 void Client::appendToBuffer(const char* data, size_t len) {
