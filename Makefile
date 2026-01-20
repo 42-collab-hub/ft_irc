@@ -8,8 +8,8 @@ SRC	= 		main.cpp \
 			Client.cpp \
 			Message.cpp \
 			commands/PASS.cpp \
-			commands/USER.cpp
-# 			commands/NICK.cpp
+			commands/USER.cpp \
+			commands/NICK.cpp
 # 			commands/CAP.cpp
 # 			Channel.cpp
 
