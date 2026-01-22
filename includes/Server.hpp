@@ -6,12 +6,14 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/19 12:49:37 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/22 18:54:21 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 # define SERVER_HPP
+
+#define IRC_MESSAGE_MAX_LENGTH 512
 
 #include <netinet/in.h> // for holding the IP address & port - contains structure and variable definitions
 #include <arpa/inet.h> // inet_pton and similar
