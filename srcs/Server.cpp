@@ -6,11 +6,13 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/19 12:26:06 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/22 18:27:50 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include "Message.hpp"
+#include "Client.hpp"
 #include <iostream>
 #include <cstring> // std::strlen
 #include <sys/socket.h> // socket() setsockopt()
@@ -97,22 +99,30 @@ void Server::handleNewConnection(void) {
 }
 
 void Server::handleClientMessage(int fd) {
-	std::cout << "Socket " << fd << " has data" << std::endl;
-	
 	char buffer[1024];
 	memset(buffer, 0, sizeof(buffer));
-
-	// read message from client
-	int readBytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
+	// TODO: handle blocking of recv with fcntl
+	ssize_t readBytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
 	if (readBytes <= 0) // reading error / client disconnected
 		return (removeClient(fd));
 	buffer[readBytes] = '\0';
-	std::cout << "Client " << fd << " says: " << buffer << std::endl;
 
-	// TODO: Parse & handle IRC commands
-	// parseMessage()
-	// executeCommand(_clients[fd], message);
+	Client* client = _clients[fd];
+	client->appendToBuffer(buffer, readBytes);
+	while (client->hasCompleteMessage()) {
+		std::string raw = client->extractMessage(); // extract single message
+		std::cout  << "Processing: " << raw << std::endl;
+		std::cout << "Raw message size: " << raw.size() << std::endl;
+		if (raw.size() > IRC_MESSAGE_MAX_LENGTH) { // Message is too long ERR_INPUTTOOLONG 417
+			std::string error = ":server 417 :Input line was too long\r\n"; // TODO: fix error reply format
+			send(fd, error.c_str(), error.size(), 0);
+			return;
+		}
+		Message msg;
+		msg.parse(raw); // parse single message
+		// execute single command
+	}
 }
 
 void Server::run() {
