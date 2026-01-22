@@ -6,11 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-<<<<<<< HEAD
-/*   Updated: 2026/01/17 12:32:02 by mglikenf         ###   ########.fr       */
-=======
-/*   Updated: 2026/01/19 12:26:06 by mglikenf         ###   ########.fr       */
->>>>>>> main
+/*   Updated: 2026/01/22 18:27:50 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,21 +108,21 @@ void Server::handleClientMessage(int fd) {
 		return (removeClient(fd));
 	buffer[readBytes] = '\0';
 
-	// TODO: handle max length limit -> truncate to 512 / send error message / ignore
-
 	Client* client = _clients[fd];
 	client->appendToBuffer(buffer, readBytes);
 	while (client->hasCompleteMessage()) {
 		std::string raw = client->extractMessage(); // extract single message
 		std::cout  << "Processing: " << raw << std::endl;
+		std::cout << "Raw message size: " << raw.size() << std::endl;
+		if (raw.size() > IRC_MESSAGE_MAX_LENGTH) { // Message is too long ERR_INPUTTOOLONG 417
+			std::string error = ":server 417 :Input line was too long\r\n"; // TODO: fix error reply format
+			send(fd, error.c_str(), error.size(), 0);
+			return;
+		}
 		Message msg;
 		msg.parse(raw); // parse single message
 		// execute single command
 	}
-
-	// TODO: Parse & handle IRC commands
-	// parse message
-	// execute one command - executeCommand(_clients[fd], message);
 }
 
 void Server::run() {
@@ -208,7 +204,3 @@ void Server::signalHandler(int signum) {
     if (_instance)
 		_instance->_running = false;
 }
-
-
-// ________________________
-
