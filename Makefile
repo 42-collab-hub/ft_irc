@@ -7,9 +7,11 @@ SRC	= 		main.cpp \
 			Server.cpp \
 			Client.cpp \
 			Message.cpp \
+			Channel.cpp \
 			commands/PASS.cpp \
 			commands/USER.cpp \
-			commands/NICK.cpp
+			commands/NICK.cpp \
+			commands/JOIN.cpp 
 # 			commands/CAP.cpp
 # 			Channel.cpp
 

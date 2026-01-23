@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/22 18:55:35 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/23 18:22:39 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -244,6 +244,8 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		handleNick(client, msg);
 	else if (cmd == "USER")
 		handleUser(client, msg);
+	else if (cmd == "JOIN")
+		handleJoin(client, msg);
 	else
 		std::cout << "Command not implemented: " << cmd << std::endl;
 }

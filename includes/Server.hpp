@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/23 16:02:50 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/23 17:41:05 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #include <string>
 #include <map>
 #include "Client.hpp"
+#include "Channel.hpp"
 #include "Message.hpp"
 #include <poll.h>
 #include "Message.hpp"
@@ -33,7 +34,7 @@ private:
 	std::string				_password;
 	std::map<int, Client*> 	_clients;
 	std::vector<pollfd> 	_poll_fds;
-	// channels
+	std::vector<Channel*>	_channels;
 
 	static Server*			_instance; // static pointer to the Server object
 	bool					_running; // main loop flag
@@ -50,7 +51,7 @@ private:
 	void handleNick(Client* client, const Message& msg);
 	void handleUser(Client* client, const Message& msg);
 	void checkRegistration(Client* client);
-	// void sendWelcome(Client* client);
+	void sendWelcome(Client* client);
 
 	void handleJoin(Client* client, const Message& msg);
 
@@ -59,6 +60,7 @@ private:
 	static void signalHandler(int signum);
 
 	// checks
+	int channelExists(const std::string &name);
 
 	void shutdownServer(void);
 
