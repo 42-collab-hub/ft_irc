@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/22 18:54:21 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/23 15:21:57 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ private:
 	void handleNick(Client* client, const Message& msg);
 	void handleUser(Client* client, const Message& msg);
 	void checkRegistration(Client* client);
-	// void sendWelcome(Client* client);
+	void sendWelcome(Client* client);
 
 	// signal handling
 	static void registerSignalHandlers(void);

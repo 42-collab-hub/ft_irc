@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/22 18:55:35 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/23 15:44:36 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 #include <poll.h> // poll()
 #include <sstream> // std::ostringstream
 #include <signal.h> // signal()
-#include <stdlib.h> // exit()
+// #include <stdlib.h> // exit()
 
 Server* Server::_instance = NULL;
 
@@ -115,7 +115,7 @@ void Server::handleClientMessage(int fd) {
 	while (client->hasCompleteMessage()) {
 		std::string raw = client->extractMessage(); // extract single message
 		std::cout  << "Processing: " << raw << std::endl;
-		std::cout << "Raw message size: " << raw.size() << std::endl;
+		// std::cout << "Raw message size: " << raw.size() << std::endl;
 		if (raw.size() > IRC_MESSAGE_MAX_LENGTH) { // Message is too long ERR_INPUTTOOLONG 417
 			std::string error = ":server 417 :Input line was too long\r\n"; // TODO: fix error reply format
 			send(fd, error.c_str(), error.size(), 0);
