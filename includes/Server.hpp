@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/22 18:28:57 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/22 18:54:21 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,9 @@
 #include <map>
 #include "Client.hpp"
 #include <poll.h>
+#include "Message.hpp"
+
+#define USERLEN 12
 
 class Server {
 private:
@@ -37,6 +40,16 @@ private:
 	void handleNewConnection(void);
 	void handleClientMessage(int fd);
 	void removeClient(int fd);
+	
+	void handleCommand(Client* client, const Message& msg);
+	void sendToClient(int fd, const std::string& message);
+	void sendError(Client* client, int code, const std::string& message);
+	void handlePass(Client* client, const Message& msg);
+	// void handleCap(Client* client, const Message& msg);
+	void handleNick(Client* client, const Message& msg);
+	void handleUser(Client* client, const Message& msg);
+	void checkRegistration(Client* client);
+	// void sendWelcome(Client* client);
 
 	// signal handling
 	static void registerSignalHandlers(void);
@@ -47,7 +60,6 @@ private:
 public:
 	Server(int port, const std::string& password);
 	~Server();
-	
 	void run();
 	bool init();
 };
