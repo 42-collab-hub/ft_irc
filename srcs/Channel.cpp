@@ -6,14 +6,14 @@
 /*   By: gholloco <gwendal.hollocou@orange.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/17 21:14:56 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/20 07:45:59 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/23 15:47:54 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Channel.hpp"
 #include "../includes/Client.hpp"
 
-Channel::Channel(){}
+Channel::Channel(std::string &name) : _name(name) {}
 Channel::~Channel(){}
 
 // getters

@@ -6,7 +6,7 @@
 /*   By: gholloco <gwendal.hollocou@orange.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/17 21:11:16 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/20 07:43:11 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/23 15:47:57 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ private:
 	std::set<Client*>		_invited;
 	
 public:
-	Channel(void);
+	Channel(std::string &name);
 	~Channel(void);
 
 	// getters

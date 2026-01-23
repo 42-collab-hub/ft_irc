@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/22 18:54:21 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/23 16:02:50 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #include <string>
 #include <map>
 #include "Client.hpp"
+#include "Message.hpp"
 #include <poll.h>
 #include "Message.hpp"
 
@@ -51,9 +52,13 @@ private:
 	void checkRegistration(Client* client);
 	// void sendWelcome(Client* client);
 
+	void handleJoin(Client* client, const Message& msg);
+
 	// signal handling
 	static void registerSignalHandlers(void);
 	static void signalHandler(int signum);
+
+	// checks
 
 	void shutdownServer(void);
 
