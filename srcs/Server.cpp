@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/24 21:05:40 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/24 21:13:45 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -255,6 +255,10 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		// handleQuit(client, msg);
 	// else if (cmd == "PRIVMSG")
 	// 	handleMsg(client, msg);
+	// else if (cmd == "JOIN")
+	// 	handleJoin(client, msg);
+	// else if (cmd == "PART")
+	// 	handlePart(client, msg);
 	else
 		std::cout << "Command not implemented: " << cmd << std::endl;
 }

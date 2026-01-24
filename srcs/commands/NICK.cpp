@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/24 20:40:43 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/24 21:00:40 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/24 21:14:04 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,30 @@
 #include "Message.hpp"
 #include <cctype> // isalnum, isalpha
 #include <string>
+
+static bool validNickname(const std::string& str) { // validate nickname character set
+	if (str.empty() || str.length() > 9)
+		return false;
+
+	std::string set = "[]{}\\|`_^";
+
+	if (!std::isalpha(str[0]) && set.find(str[0]) == std::string::npos) // first character
+		return false;
+
+	for (size_t i = 1; i < str.length(); i++) {
+		if (!std::isalnum(str[i]) && str[i] != '-' && set.find(str[i]) == std::string::npos)
+			return false;
+	}
+	return true;
+}
+
+static std::string normalizeNickname(const std::string& original) {
+	std::string normalized = "";
+	for (size_t i = 0; i < original.length(); i++) {
+		normalized += std::tolower(original[i]);
+	}
+	return normalized;
+}
 
 void Server::handleNick(Client* client, const Message& msg) {
 	if (!_password.empty() && !client->isAuthenticated()) // NICK + USER only after PASS
@@ -50,28 +74,4 @@ void Server::handleNick(Client* client, const Message& msg) {
 	if (currentNick.empty())
 		currentNick = "*";
 	sendToClient(client->getFd(), ":" + currentNick + "!" + user + "@" + host + " NICK :" + newNickname);
-}
-
-static bool validNickname(const std::string& str) { // validate nickname character set
-	if (str.empty() || str.length() > 9)
-		return false;
-
-	std::string set = "[]{}\\|`_^";
-
-	if (!std::isalpha(str[0]) && set.find(str[0]) == std::string::npos) // first character
-		return false;
-
-	for (size_t i = 1; i < str.length(); i++) {
-		if (!std::isalnum(str[i]) && str[i] != '-' && set.find(str[i]) == std::string::npos)
-			return false;
-	}
-	return true;
-}
-
-static std::string normalizeNickname(const std::string& original) {
-	std::string normalized = "";
-	for (size_t i = 0; i < original.length(); i++) {
-		normalized += std::tolower(original[i]);
-	}
-	return normalized;
 }
