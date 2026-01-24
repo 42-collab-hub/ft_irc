@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/23 15:44:36 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/24 21:05:40 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,15 +22,26 @@
 #include <poll.h> // poll()
 #include <sstream> // std::ostringstream
 #include <signal.h> // signal()
-// #include <stdlib.h> // exit()
+#include <ctime>
 
 Server* Server::_instance = NULL;
 
 Server::Server(int port, const std::string& password) : _port(port), _password(password) {
 	_instance = this;
 	_running = true;
+	setServerCreationTime();
 }
-// initialize the other variables as well
+
+void Server::setServerCreationTime() {
+	time_t timestamp;
+    struct tm datetime;
+    char output[50];
+    
+    time(&timestamp);
+    datetime = *localtime(&timestamp);
+    strftime(output, 50, "%a %b %d %H:%M:%S %Y", &datetime);
+    _creationTime = output;
+}
 
 Server::~Server() {
 	close(_listenSocket);
@@ -83,57 +94,6 @@ bool Server::init() {
 	return true;
 }
 
-void Server::handleNewConnection(void) {
-	struct sockaddr_in address;
-	int addrlen = sizeof(address);
-
-	int	clientFd = accept(_listenSocket, (sockaddr*)&address, (socklen_t*)&addrlen);
-	if (clientFd < 0) {
-		std::cerr << "Error: Failed to accept connection: " << strerror(errno) << std::endl;
-		return ;
-	}
-	std::string hostname = inet_ntoa(address.sin_addr);
-	Client* newClient = new Client(clientFd, hostname);
-	_clients[clientFd] = newClient;
-	pollfd clientPollFd = {clientFd, POLLIN, 0};
-	_poll_fds.push_back(clientPollFd);
-}
-
-void Server::handleClientMessage(int fd) {
-	char buffer[1024];
-	memset(buffer, 0, sizeof(buffer));
-	// TODO: handle blocking of recv with fcntl
-	ssize_t readBytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
-
-	if (readBytes <= 0) // reading error / client disconnected
-		return (removeClient(fd));
-	buffer[readBytes] = '\0';
-
-	Client* client = _clients[fd];
-	client->appendToBuffer(buffer, readBytes);
-
-	while (client->hasCompleteMessage()) {
-		std::string raw = client->extractMessage(); // extract single message
-		std::cout  << "Processing: " << raw << std::endl;
-		// std::cout << "Raw message size: " << raw.size() << std::endl;
-		if (raw.size() > IRC_MESSAGE_MAX_LENGTH) { // Message is too long ERR_INPUTTOOLONG 417
-			std::string error = ":server 417 :Input line was too long\r\n"; // TODO: fix error reply format
-			send(fd, error.c_str(), error.size(), 0);
-			return;
-		}
-		Message msg;
-		msg.parse(raw); // parse single message
-		
-		handleCommand(client, msg); // execute single command
-
-		if (_clients.find(fd) == _clients.end()) { // Client was disconnected due to error - stop processing
-			std::cout << "Client removed, stopping message processing" << std::endl;
-			return;
-		}
-		client = _clients[fd];
-	}
-}
-
 void Server::run() {
     registerSignalHandlers(); // Register signal handlers
 
@@ -166,8 +126,7 @@ void Server::run() {
 	shutdownServer();
 }
 
-void Server::shutdownServer() {
-	// send shutdown message to clients
+void Server::shutdownServer() { // send shutdown message to clients
 	std::string message = "ERROR :Server shutting down\r\n";
 	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
 		int fd = it->first;
@@ -175,8 +134,55 @@ void Server::shutdownServer() {
 	}
 }
 
-// client removal upon disconnection
-void Server::removeClient(int fd) {
+void Server::handleNewConnection(void) {
+	struct sockaddr_in address;
+	int addrlen = sizeof(address);
+
+	int	clientFd = accept(_listenSocket, (sockaddr*)&address, (socklen_t*)&addrlen);
+	if (clientFd < 0) {
+		std::cerr << "Error: Failed to accept connection: " << strerror(errno) << std::endl;
+		return ;
+	}
+	std::string hostname = inet_ntoa(address.sin_addr);
+	Client* newClient = new Client(clientFd, hostname);
+	_clients[clientFd] = newClient;
+	pollfd clientPollFd = {clientFd, POLLIN, 0};
+	_poll_fds.push_back(clientPollFd);
+}
+
+void Server::handleClientMessage(int fd) {
+	char buffer[1024];
+	memset(buffer, 0, sizeof(buffer));
+	// TODO: handle blocking of recv with fcntl
+	ssize_t readBytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
+
+	if (readBytes <= 0) // reading error / client disconnected
+		return (removeClient(fd));
+	buffer[readBytes] = '\0';
+
+	Client* client = _clients[fd];
+	client->appendToBuffer(buffer, readBytes);
+
+	while (client->hasCompleteMessage()) {
+		std::string raw = client->extractMessage(); // extract single message
+		std::cout  << "Processing: " << raw << std::endl;
+		if (raw.size() > IRC_MESSAGE_MAX_LENGTH) { // Message is too long ERR_INPUTTOOLONG 417
+			std::string error = ":server 417 :Input line was too long\r\n"; // TODO: fix error reply format
+			send(fd, error.c_str(), error.size(), 0);
+			return;
+		}
+		Message msg;
+		msg.parse(raw); // parse single message
+		handleCommand(client, msg); // execute single command
+		if (_clients.find(fd) == _clients.end()) { // Client was disconnected due to error - stop processing
+			std::cout << "Client removed, stopping message processing" << std::endl;
+			return;
+		}
+		client = _clients[fd];
+	}
+}
+
+void Server::removeClient(int fd) { // client removal upon disconnection
 	std::map<int, Client*>::iterator it = _clients.find(fd); // delete Client object
 	if (it != _clients.end()) {
 		delete it->second;
@@ -214,7 +220,6 @@ void Server::signalHandler(int signum) {
 		_instance->_running = false;
 }
 
-// Command Handling
 void Server::sendToClient(int fd, const std::string& message) {
 	std::string msg = message + "\r\n";
 	send(fd, msg.c_str(), msg.length(), 0);
@@ -238,12 +243,18 @@ void Server::handleCommand(Client* client, const Message& msg) {
 
 	if (cmd == "PASS")
 		handlePass(client, msg);
-	// else if (cmd == "CAP")
-	// 	handleCap(client, msg);
+	else if (cmd == "CAP")
+		handleCap(client, msg);
 	else if (cmd == "NICK")
 		handleNick(client, msg);
 	else if (cmd == "USER")
 		handleUser(client, msg);
+	// else if (cmd == "PING")
+		// handlePing(client, msg);
+	// else if (cmd == QUIT)
+		// handleQuit(client, msg);
+	// else if (cmd == "PRIVMSG")
+	// 	handleMsg(client, msg);
 	else
 		std::cout << "Command not implemented: " << cmd << std::endl;
 }

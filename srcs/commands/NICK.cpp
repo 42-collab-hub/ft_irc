@@ -1,35 +1,20 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   NICK.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/01/24 20:40:43 by mglikenf          #+#    #+#             */
+/*   Updated: 2026/01/24 21:00:40 by mglikenf         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Server.hpp"
 #include "Client.hpp"
-#include <iostream>
+#include "Message.hpp"
 #include <cctype> // isalnum, isalpha
 #include <string>
-
-// give the client a nickname or change the previous one
-
-static bool validNickname(const std::string& str) { // validate nickname character set
-	if (str.empty() || str.length() > 9)
-		return false;
-
-	std::string set = "[]{}\\|`_^"; // confirm set
-
-	if (!std::isalpha(str[0]) && set.find(str[0]) == std::string::npos) // first character
-		return false;
-
-	for (size_t i = 1; i < str.length(); i++) {
-		if (!std::isalnum(str[i]) && str[i] != '-' && set.find(str[i]) == std::string::npos) {
-			return false;
-		}
-	}
-	return true;
-}
-
-static std::string normalizeNickname(const std::string& original) {
-	std::string normalized = "";
-	for (size_t i = 0; i < original.length(); i++) {
-		normalized += std::tolower(original[i]);
-	}
-	return normalized;
-}
 
 void Server::handleNick(Client* client, const Message& msg) {
 	if (!_password.empty() && !client->isAuthenticated()) // NICK + USER only after PASS
@@ -40,16 +25,14 @@ void Server::handleNick(Client* client, const Message& msg) {
 	}
 
 	std::string newNickname = msg._params[0];
+	std::string currentNick = client->getNickname();
+	if (!currentNick.empty() && (normalizeNickname(currentNick) == normalizeNickname(newNickname)))
+		return;
 
 	if (!validNickname(newNickname)) { // invalid character set ERR_ERRONEUSNICKNAME (432)
 		sendToClient(client->getFd(), ":server 432 " + newNickname + " :Erroneus nickname");
 		return;
 	}
-
-	std::string currentNick = client->getNickname();
-
-	if (!currentNick.empty() && (normalizeNickname(currentNick) == normalizeNickname(newNickname)))
-		return;
 
 	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
 		if (it->second == client) // skip itself
@@ -62,18 +45,33 @@ void Server::handleNick(Client* client, const Message& msg) {
 	}
 
 	client->setNickname(newNickname);
+	std::string user = client->getUsername();
+	std::string host = client->getHostname();
+	if (currentNick.empty())
+		currentNick = "*";
+	sendToClient(client->getFd(), ":" + currentNick + "!" + user + "@" + host + " NICK :" + newNickname);
+}
 
-	if (!client->isRegistered())
-		checkRegistration(client);
-	else {
-        std::string user = client->getUsername();
-        std::string host = client->getHostname();
+static bool validNickname(const std::string& str) { // validate nickname character set
+	if (str.empty() || str.length() > 9)
+		return false;
 
-        if (currentNick.empty())
-            currentNick = "*";
+	std::string set = "[]{}\\|`_^";
 
-        sendToClient(client->getFd(), ":" + currentNick + "!" + user + "@" + host + " NICK :" + newNickname);
+	if (!std::isalpha(str[0]) && set.find(str[0]) == std::string::npos) // first character
+		return false;
 
-        std::cout << "Nickname changed from " << currentNick << " to " << newNickname << std::endl;
-    }
+	for (size_t i = 1; i < str.length(); i++) {
+		if (!std::isalnum(str[i]) && str[i] != '-' && set.find(str[i]) == std::string::npos)
+			return false;
+	}
+	return true;
+}
+
+static std::string normalizeNickname(const std::string& original) {
+	std::string normalized = "";
+	for (size_t i = 0; i < original.length(); i++) {
+		normalized += std::tolower(original[i]);
+	}
+	return normalized;
 }

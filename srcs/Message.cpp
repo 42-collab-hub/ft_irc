@@ -6,12 +6,12 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/16 16:05:26 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/17 12:27:24 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/24 21:03:12 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Message.hpp"
-#include <iostream>
+#include <string>
 #include <sstream>
 
 Message::Message() {}
@@ -51,4 +51,3 @@ void Message::parse(const std::string& raw) {
 		str = str.substr(pos + 1);
 	}
 }
-

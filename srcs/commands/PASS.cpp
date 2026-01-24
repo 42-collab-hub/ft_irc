@@ -6,13 +6,13 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/18 12:32:06 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/18 18:33:21 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/24 21:00:48 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 #include "Client.hpp"
-#include <iostream>
+#include "Message.hpp"
 
 void Server::handlePass(Client* client, const Message& msg) {
 	if (client->isRegistered()) { // client is already registered ERR_ALREADYREGISTERED 462
@@ -25,5 +25,4 @@ void Server::handlePass(Client* client, const Message& msg) {
 		return (sendError(client, 464, "Password incorrect"), removeClient(client->getFd()));
 	}
 	client->setAuthenticated(true);
-	std::cout << "Client authenticated" << std::endl;
 }
