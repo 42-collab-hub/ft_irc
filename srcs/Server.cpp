@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/24 21:13:45 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/25 17:13:22 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,8 @@ bool Server::init() {
 	// struct sockaddr_in address; // structure describing an Internet socket address
 	struct sockaddr_in address;
 
+	std::cout << "Starting IRC server..." << std::endl;
+
 	_listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_listenSocket < 0) {
 		std::cerr << "Error: Failed to create socket" << std::endl;
@@ -89,7 +91,8 @@ bool Server::init() {
 	}
 	pollfd listenPollFd = {_listenSocket, POLLIN, 0};
 	_poll_fds.push_back(listenPollFd);
-	std::cout << "Socket is ready to accept client connections..." << std::endl;
+
+	std::cout << "Server is running" << std::endl;
 
 	return true;
 }
@@ -127,10 +130,11 @@ void Server::run() {
 }
 
 void Server::shutdownServer() { // send shutdown message to clients
-	std::string message = "ERROR :Server shutting down\r\n";
+	std::string message = "Shutting down server";
+	std::cout << "\n" + message << std::endl;
 	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
 		int fd = it->first;
-		send(fd, message.c_str(), message.length(), 0);
+		sendToClient(fd, "ERROR :" + message + "\r\n");
 	}
 }
 
@@ -205,17 +209,7 @@ void Server::registerSignalHandlers(void) {
 }
 
 void Server::signalHandler(int signum) {
-	std::cout << "\nSignal detected: ";
-    switch(signum) {
-        case SIGINT:
-			std::cout << " (SIGINT - Ctrl+C)\n"; break;
-        case SIGTERM:
-			std::cout << " (SIGTERM)\n"; break;
-        case SIGQUIT:
-			std::cout << " (SIGQUIT - Ctrl+\\)\n"; break;
-        default:
-			std::cout << " (Unknown)\n"; break;
-    }
+	(void)signum;
     if (_instance)
 		_instance->_running = false;
 }
@@ -225,17 +219,14 @@ void Server::sendToClient(int fd, const std::string& message) {
 	send(fd, msg.c_str(), msg.length(), 0);
 }
 
-void Server::sendError(Client* client, int code, const std::string& message) {
-	std::string target;
+void Server::sendNumericReply(Client* client, const std::string& code, const std::string& params, const std::string& message) {
+	std::string target = client->getNickname().empty() ? "*" : client->getNickname();
+	std::string reply = ":server " + code + " " + target;
 
-	if (client->getNickname().empty())
-		target = "*";
-	else
-		target = client->getNickname();
-	
-	std::ostringstream oss;
-	oss << ":server " << code << " " << target << " :" << message;
-	sendToClient(client->getFd(), oss.str());
+	if (!params.empty())
+		reply += " " + params;
+	reply += " :" + message;
+	sendToClient(client->getFd(), reply);
 }
 
 void Server::handleCommand(Client* client, const Message& msg) {
@@ -249,8 +240,16 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		handleNick(client, msg);
 	else if (cmd == "USER")
 		handleUser(client, msg);
-	// else if (cmd == "PING")
-		// handlePing(client, msg);
+	else if (cmd == "PING")
+		handlePing(client, msg);
+	// else if (cmd == "INVITE")
+		// handleInvite(client, msg);
+	// else if (cmd == "KICK")
+		// handleKick(client, msg);
+	// else if (cmd == "MODE")
+	// 	handleMode(client, msg);
+	// else if (cmd == "WHOIS")
+	// 	handleWhois(client, msg);
 	// else if (cmd == QUIT)
 		// handleQuit(client, msg);
 	// else if (cmd == "PRIVMSG")
@@ -259,6 +258,8 @@ void Server::handleCommand(Client* client, const Message& msg) {
 	// 	handleJoin(client, msg);
 	// else if (cmd == "PART")
 	// 	handlePart(client, msg);
+	// else if (cmd == "TOPIC")
+	// 	handleTopic(client, msg);
 	else
-		std::cout << "Command not implemented: " << cmd << std::endl;
+		sendNumericReply(client, "421", cmd, "Unknown command");
 }

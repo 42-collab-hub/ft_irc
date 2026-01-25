@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 10:45:13 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/24 21:02:33 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/25 16:53:27 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,5 +46,3 @@ const std::string& Client::getUsername(void) { return _username; }
 const std::string& Client::getRealname(void) { return _realname; }
 const std::string& Client::getHostname(void) { return _hostname; }
 int Client::getFd(void) { return this->_fd; }
-
-

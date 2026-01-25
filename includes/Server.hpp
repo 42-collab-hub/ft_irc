@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/24 21:01:57 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/25 17:12:01 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,12 +42,15 @@ private:
 	void handleClientMessage(int fd);
 	void removeClient(int fd);
 	void handleCommand(Client* client, const Message& msg);
+	void sendNumericReply(Client* client, const std::string& code, const std::string& params, const std::string& message);
 	void sendToClient(int fd, const std::string& message);
-	void sendError(Client* client, int code, const std::string& message);
 	void handlePass(Client* client, const Message& msg);
 	void handleCap(Client* client, const Message& msg);
 	void handleNick(Client* client, const Message& msg);
+	bool isTakenNickname(Client* client, const std::string& newNickname);
 	void handleUser(Client* client, const Message& msg);
+	// void handlePing(Client* client, const Message& msg);
+	// void handleMsg(Client* client, const Message& msg);
 	void checkRegistration(Client* client);
 	void sendWelcome(Client* client);
 	void shutdownServer(void);
