@@ -10,7 +10,8 @@ SRC	= 		main.cpp \
 			commands/PASS.cpp \
 			commands/USER.cpp \
 			commands/NICK.cpp \
-			commands/CAP.cpp
+			commands/CAP.cpp \
+			commands/PING.cpp
 # 			Channel.cpp
 
 OBJDIR = 	obj
