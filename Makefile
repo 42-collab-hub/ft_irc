@@ -6,7 +6,12 @@ SRC	= 		main.cpp \
 			args.cpp \
 			Server.cpp \
 			Client.cpp \
-			Message.cpp
+			Message.cpp \
+			commands/PASS.cpp \
+			commands/USER.cpp \
+			commands/NICK.cpp \
+			commands/CAP.cpp \
+			commands/PING.cpp
 # 			Channel.cpp
 
 OBJDIR = 	obj
