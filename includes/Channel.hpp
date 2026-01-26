@@ -6,7 +6,7 @@
 /*   By: gholloco <gwendal.hollocou@orange.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/17 21:11:16 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/23 15:47:57 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/26 20:19:21 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,9 @@ public:
 	bool					hasKey(void) const;
 	bool					hasUserLimit(void) const;
 	int						getId(void) const;
+	size_t					getMemberCount(void) const;
 	unsigned int			getUserLimit(void) const;
+	std::string 			getMemberList(void);
 	const std::string&		getTopic(void) const;
 	const std::string&		getName(void) const;
 	const std::string&		getPassword(void) const;

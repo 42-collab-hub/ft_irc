@@ -6,7 +6,7 @@
 /*   By: gholloco <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/23 13:19:11 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/24 18:39:21 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/26 23:43:00 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,17 +15,19 @@
 #include "Message.hpp"
 #include "Channel.hpp"
 
-int Server::channelExists(const std::string &name)
+Channel* Server::getChannel(const std::string &name)
 {
-	for (std::vector<Channel*>::iterator chan = _channels.begin(); chan != _channels.end(); chan++)
+	std::cout << "channelExists start, every channels are : " << std::endl;
+	for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++)
 	{
-		if ((*chan)->getName() == name)
+	  std::cout << (*it)->getName() << std::endl;
+		if ((*it)->getName() == name)
 		{
-			return 1;
+			return *it;
 		}
 	}
 	std::cout << "No such chan : " << name << std::endl;
-	return 0;
+	return NULL;
 }
 
 static int validChannelName(const std::string &name)
@@ -40,9 +42,23 @@ static int validChannelName(const std::string &name)
 	return 1;
 }
 
+void Server::sendJoinMessage(Client* client, Channel* channel)
+{
+	std::string clientName = client->getNickname();
+	std::string channelName = channel->getName();
+	channel->broadcast(":" + clientName + " JOIN " + channelName, NULL);
+	sendToClient(client->getFd(), ":server 331 " + clientName + " " + channelName + " :No topic is set");
+	sendToClient(client->getFd(), ":server 353 " + clientName + " = " + channelName + " :@" + channel->getMemberList());
+	sendToClient(client->getFd(), ":server 366 " + clientName + " " + channelName + " :End of /NAMES list");
+}
+
 void Server::handleJoin(Client* client, const Message& msg)
 {
 	std::string clientName = client->getNickname();
+	std::string key;
+
+	if (msg._params.size() >= 2)
+		key = msg._params[1];
 	if (!client->isAuthenticated() || !client->isRegistered())
 		return;
 	if (msg._params.empty() || msg._params[0].empty())
@@ -52,25 +68,38 @@ void Server::handleJoin(Client* client, const Message& msg)
 	}
 	std::string channelName = msg._params[0];
 	std::cout << "channelName : " << channelName << std::endl;
+	std::cout << "key = " << key << std::endl;
 	if (!validChannelName(channelName))
 	{
 		sendToClient(client->getFd(), ":server 476 " + clientName + " " + channelName + ":Bad Channel Mask");
 		return ;
 	}
-	if (channelExists(channelName))
+	Channel* chan = getChannel(channelName);
+	if (chan)
 	{
-		// check chan password & chan invites
+		if (chan->isMember(client)) // client is already member of this chan
+			sendNumericReply(client, "443", chan->getName(), ":is already on channel");
+		if (chan->isInviteOnly() && !chan->isInvited(client))
+			sendNumericReply(client, "473", "", ":Cannot join channel (+i)");
+		if (chan->hasKey() && key != chan->getPassword())
+			sendNumericReply(client, "475", "", ":Cannot join channel (+k)");
+		if (chan->hasUserLimit() && chan->getUserLimit() == chan->getMemberCount())
+			sendNumericReply(client, "471", "", ":Cannot join channel (+l)");
+		chan->addMember(client);
+		chan->removeInvite(client);
+		sendJoinMessage(client, chan);
+
 	}
 	else
 	{
 		// create new channel, name is already validated
-		Channel newChan(channelName);
-		_channels.push_back(&newChan);
-		newChan.addMember(client);
-		newChan.addOperator(client);
+		Channel* newChan = new Channel(channelName);
+		_channels.push_back(newChan);
+		newChan->addMember(client);
+		newChan->addOperator(client);
 		sendToClient(client->getFd(), ":" + clientName + " JOIN " + channelName);
 		sendToClient(client->getFd(), ":server 331 " + clientName + " " + channelName + " :No topic is set");
-		sendToClient(client->getFd(), ":server 353 " + clientName + " = " + channelName + " :@" + clientName);
+		sendToClient(client->getFd(), ":server 353 " + clientName + " = " + channelName + " :@" + newChan->getMemberList());
 		sendToClient(client->getFd(), ":server 366 " + clientName + " " + channelName + " :End of /NAMES list");
 		std::cout << "Sucessfully created the channel : " << channelName << std::endl;
 	}

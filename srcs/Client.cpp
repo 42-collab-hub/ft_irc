@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 10:45:13 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/20 14:36:41 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/26 23:31:27 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,29 @@ Client::~Client() {}
 
 void Client::appendToBuffer(const char* data, size_t len) {
 	_recvBuffer.append(data, len);
+}
+
+void Client::queueMessage(const std::string& msg)
+{
+	_sendBuffer += msg;
+}
+
+void Client::flushMessage(void)
+{
+	if (_sendBuffer.empty())
+		return ;
+
+	ssize_t i = send(_fd, _sendBuffer.c_str(), _sendBuffer.size(), 0);
+
+	if (i <= 0) // message not sent so we don't erase it yet, retry on next POLLOUT
+		return ; 
+
+	_sendBuffer.erase(0, i);
+}
+
+bool Client::hasQueuedMessage() const
+{
+	return !_sendBuffer.empty();
 }
 
 bool Client::hasCompleteMessage() const {
@@ -39,14 +62,10 @@ void Client::setUsername(const std::string& str) { _username = str; }
 void Client::setRealname(const std::string& str) { _realname = str; }
 void Client::setHostname(const std::string& str) { _hostname = str; }
 
-
 bool Client::isAuthenticated(void) { return _autheticated; }
 bool Client::isRegistered(void) { return _registered; }
 const std::string& Client::getNickname(void) { return _nickname; }
 const std::string& Client::getUsername(void) { return _username; } 
 const std::string& Client::getRealname(void) { return _realname; }
 const std::string& Client::getHostname(void) { return _hostname; }
-
 int Client::getFd(void) { return this->_fd; }
-
-

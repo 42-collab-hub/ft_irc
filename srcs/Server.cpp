@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/23 18:22:39 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/26 23:33:13 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,15 +22,26 @@
 #include <poll.h> // poll()
 #include <sstream> // std::ostringstream
 #include <signal.h> // signal()
-#include <stdlib.h> // exit()
+#include <ctime>
 
 Server* Server::_instance = NULL;
 
 Server::Server(int port, const std::string& password) : _port(port), _password(password) {
 	_instance = this;
 	_running = true;
+	setServerCreationTime();
 }
-// initialize the other variables as well
+
+void Server::setServerCreationTime() {
+	time_t timestamp;
+    struct tm datetime;
+    char output[50];
+    
+    time(&timestamp);
+    datetime = *localtime(&timestamp);
+    strftime(output, 50, "%a %b %d %H:%M:%S %Y", &datetime);
+    _creationTime = output;
+}
 
 Server::~Server() {
 	close(_listenSocket);
@@ -46,6 +57,8 @@ Server::~Server() {
 bool Server::init() {
 	// struct sockaddr_in address; // structure describing an Internet socket address
 	struct sockaddr_in address;
+
+	std::cout << "Starting IRC server..." << std::endl;
 
 	_listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_listenSocket < 0) {
@@ -78,9 +91,60 @@ bool Server::init() {
 	}
 	pollfd listenPollFd = {_listenSocket, POLLIN, 0};
 	_poll_fds.push_back(listenPollFd);
-	std::cout << "Socket is ready to accept client connections..." << std::endl;
+
+	std::cout << "Server is running" << std::endl;
 
 	return true;
+}
+
+void Server::run() {
+    registerSignalHandlers(); // Register signal handlers
+
+	while (_running) {
+		int ready = poll(_poll_fds.data(), _poll_fds.size(), -1);
+		if (ready < 0) // poll error
+			break;
+
+		for (size_t i = 0; i < _poll_fds.size(); i++) { // check each monitored fd at a time
+			int fd = _poll_fds[i].fd;
+			short revents = _poll_fds[i].revents;
+			Client* client = getClientByFd(fd);
+
+			if (revents == 0) // no activity
+				continue;
+			if (revents & (POLLHUP | POLLERR)) { // errors/disconnections
+				if (fd != _listenSocket)
+					removeClient(fd);
+				continue;
+			}
+			if (revents & POLLIN) { // incoming client activity
+				if (fd == _listenSocket)
+					handleNewConnection();
+				else {
+					handleClientMessage(fd);
+					// continue;
+				}
+			}
+			if (revents & POLLOUT) { // client ready to receive
+				if (!client)
+					continue ;
+				client->flushMessage();
+				disablePollout(fd);
+			}
+			if (client && client->hasQueuedMessage())
+				enablePollout(fd);
+		}
+	}
+	shutdownServer();
+}
+
+void Server::shutdownServer() { // send shutdown message to clients
+	std::string message = "Shutting down server";
+	std::cout << "\n" + message << std::endl;
+	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+		int fd = it->first;
+		sendToClient(fd, "ERROR :" + message + "\r\n");
+	}
 }
 
 void Server::handleNewConnection(void) {
@@ -115,7 +179,6 @@ void Server::handleClientMessage(int fd) {
 	while (client->hasCompleteMessage()) {
 		std::string raw = client->extractMessage(); // extract single message
 		std::cout  << "Processing: " << raw << std::endl;
-		std::cout << "Raw message size: " << raw.size() << std::endl;
 		if (raw.size() > IRC_MESSAGE_MAX_LENGTH) { // Message is too long ERR_INPUTTOOLONG 417
 			std::string error = ":server 417 :Input line was too long\r\n"; // TODO: fix error reply format
 			send(fd, error.c_str(), error.size(), 0);
@@ -123,9 +186,7 @@ void Server::handleClientMessage(int fd) {
 		}
 		Message msg;
 		msg.parse(raw); // parse single message
-		
 		handleCommand(client, msg); // execute single command
-
 		if (_clients.find(fd) == _clients.end()) { // Client was disconnected due to error - stop processing
 			std::cout << "Client removed, stopping message processing" << std::endl;
 			return;
@@ -134,49 +195,7 @@ void Server::handleClientMessage(int fd) {
 	}
 }
 
-void Server::run() {
-    registerSignalHandlers(); // Register signal handlers
-
-	while (_running) {
-		int ready = poll(_poll_fds.data(), _poll_fds.size(), -1);
-		if (ready < 0) // poll error
-			break;
-
-		for (size_t i = 0; i < _poll_fds.size(); i++) { // check each monitored fd at a time
-			int fd = _poll_fds[i].fd;
-			short revents = _poll_fds[i].revents;
-
-			if (revents == 0) // no activity
-				continue;
-			if (revents & (POLLHUP | POLLERR)) { // errors/disconnections
-				if (fd != _listenSocket)
-					removeClient(fd);
-				continue;
-			}
-			if (revents & POLLIN) { // incoming client activity
-				if (fd == _listenSocket)
-					handleNewConnection();
-				else {
-					handleClientMessage(fd);
-					continue;
-				}
-			}
-		}
-	}
-	shutdownServer();
-}
-
-void Server::shutdownServer() {
-	// send shutdown message to clients
-	std::string message = "ERROR :Server shutting down\r\n";
-	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
-		int fd = it->first;
-		send(fd, message.c_str(), message.length(), 0);
-	}
-}
-
-// client removal upon disconnection
-void Server::removeClient(int fd) {
+void Server::removeClient(int fd) { // client removal upon disconnection
 	std::map<int, Client*>::iterator it = _clients.find(fd); // delete Client object
 	if (it != _clients.end()) {
 		delete it->second;
@@ -199,38 +218,55 @@ void Server::registerSignalHandlers(void) {
 }
 
 void Server::signalHandler(int signum) {
-	std::cout << "\nSignal detected: ";
-    switch(signum) {
-        case SIGINT:
-			std::cout << " (SIGINT - Ctrl+C)\n"; break;
-        case SIGTERM:
-			std::cout << " (SIGTERM)\n"; break;
-        case SIGQUIT:
-			std::cout << " (SIGQUIT - Ctrl+\\)\n"; break;
-        default:
-			std::cout << " (Unknown)\n"; break;
-    }
+	(void)signum;
     if (_instance)
 		_instance->_running = false;
 }
 
-// Command Handling
 void Server::sendToClient(int fd, const std::string& message) {
 	std::string msg = message + "\r\n";
-	send(fd, msg.c_str(), msg.length(), 0);
+	Client *c = getClientByFd(fd);
+	c->queueMessage(msg);
+	enablePollout(fd);
+	// send(fd, msg.c_str(), msg.length(), 0);
 }
 
-void Server::sendError(Client* client, int code, const std::string& message) {
-	std::string target;
+void Server::enablePollout(int fd)
+{
+	for (size_t i = 0; i < _poll_fds.size(); ++i)
+        if (_poll_fds[i].fd == fd) 
+		{ 
+			_poll_fds[i].events |= POLLOUT;
+			return; 
+		}
+}
 
-	if (client->getNickname().empty())
-		target = "*";
-	else
-		target = client->getNickname();
-	
-	std::ostringstream oss;
-	oss << ":server " << code << " " << target << " :" << message;
-	sendToClient(client->getFd(), oss.str());
+void Server::disablePollout(int fd)
+{
+	for (size_t i = 0; i < _poll_fds.size(); ++i)
+        if (_poll_fds[i].fd == fd) 
+		{ 
+			_poll_fds[i].events &= ~POLLOUT;
+			return; 
+		}
+}
+
+Client* Server::getClientByFd(int fd)
+{
+	std::map<int, Client*>::iterator it = _clients.find(fd);
+	if (it == _clients.end())
+		return NULL;
+	return it->second;
+}
+
+void Server::sendNumericReply(Client* client, const std::string& code, const std::string& params, const std::string& message) {
+	std::string target = client->getNickname().empty() ? "*" : client->getNickname();
+	std::string reply = ":server " + code + " " + target;
+
+	if (!params.empty())
+		reply += " " + params;
+	reply += " :" + message;
+	sendToClient(client->getFd(), reply);
 }
 
 void Server::handleCommand(Client* client, const Message& msg) {
@@ -238,14 +274,34 @@ void Server::handleCommand(Client* client, const Message& msg) {
 
 	if (cmd == "PASS")
 		handlePass(client, msg);
-	// else if (cmd == "CAP")
-	// 	handleCap(client, msg);
+	else if (cmd == "CAP")
+		handleCap(client, msg);
 	else if (cmd == "NICK")
 		handleNick(client, msg);
 	else if (cmd == "USER")
 		handleUser(client, msg);
 	else if (cmd == "JOIN")
 		handleJoin(client, msg);
+	else if (cmd == "PING")
+		handlePing(client, msg);
+	// else if (cmd == "INVITE")
+		// handleInvite(client, msg);
+	// else if (cmd == "KICK")
+		// handleKick(client, msg);
+	// else if (cmd == "MODE")
+	// 	handleMode(client, msg);
+	// else if (cmd == "WHOIS")
+	// 	handleWhois(client, msg);
+	// else if (cmd == QUIT)
+		// handleQuit(client, msg);
+	// else if (cmd == "PRIVMSG")
+	// 	handleMsg(client, msg);
+	// else if (cmd == "JOIN")
+	// 	handleJoin(client, msg);
+	// else if (cmd == "PART")
+	// 	handlePart(client, msg);
+	// else if (cmd == "TOPIC")
+	// 	handleTopic(client, msg);
 	else
-		std::cout << "Command not implemented: " << cmd << std::endl;
+		sendNumericReply(client, "421", cmd, "Unknown command");
 }

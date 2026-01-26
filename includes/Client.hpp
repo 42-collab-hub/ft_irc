@@ -6,13 +6,14 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 08:38:00 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/20 12:27:28 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/26 23:04:39 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
+#include <sys/socket.h>
 #include <vector>
 #include <string>
 
@@ -24,6 +25,7 @@ private:
 	std::string			_hostname;
 	std::string			_realname;
 	std::string			_recvBuffer; // receive buffer (for partial messages)
+	std::string			_sendBuffer; // send buffer
 	bool				_autheticated; // client authentification state
 	bool				_registered; // client registration state
 	// channels
@@ -36,6 +38,11 @@ public:
 	void 				appendToBuffer(const char* data, size_t len);
 	bool 				hasCompleteMessage() const;
 	std::string 		extractMessage();
+
+	// message sending
+	void 				queueMessage(const std::string& msg);
+	void 				flushMessage(void);
+	bool				hasQueuedMessage(void) const;
 	
 	// Client authentication & registration methods
 	void 				setAuthenticated(bool status);

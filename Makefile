@@ -9,11 +9,11 @@ SRC	= 		main.cpp \
 			Message.cpp \
 			Channel.cpp \
 			commands/PASS.cpp \
+			commands/PING.cpp \
 			commands/USER.cpp \
 			commands/NICK.cpp \
+			commands/CAP.cpp \
 			commands/JOIN.cpp 
-# 			commands/CAP.cpp
-# 			Channel.cpp
 
 OBJDIR = 	obj
 OBJ = 		$(SRC:%.cpp=$(OBJDIR)/%.o)
