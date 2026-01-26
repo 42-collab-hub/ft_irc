@@ -6,7 +6,7 @@
 /*   By: gholloco <gwendal.hollocou@orange.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/17 21:14:56 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/23 15:47:54 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/25 03:40:39 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,4 +153,11 @@ bool Channel::removeInvite(Client* c)
 	return this->_invited.erase(c) != 0;
 }
 
-// TODO: broadcast
+// void Channel::broadcast(const std::string& msg, Client *c)
+// {
+// 	for (std::set<Client*>::iterator it = this->_members.begin(); it != this->_members.end(); ++it)
+// 	{
+// 		if (*it != c)
+// 			// (*it)->sendMessage(msg); 
+// 	}
+// }
