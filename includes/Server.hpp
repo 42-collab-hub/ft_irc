@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/25 17:18:04 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/27 16:10:49 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,9 @@ private:
 	bool isTakenNickname(Client* client, const std::string& newNickname);
 	void handleUser(Client* client, const Message& msg);
 	void handlePing(Client* client, const Message& msg);
-	// void handleMsg(Client* client, const Message& msg);
+	void handleMsg(Client* client, const Message& msg);
+	void sendToUser(Client* sender, const std::string& target, const std::string& message);
+	void sendToChannel(Client* sender, const std::string& target, const std::string& message);
 	void checkRegistration(Client* client);
 	void sendWelcome(Client* client);
 	void shutdownServer(void);

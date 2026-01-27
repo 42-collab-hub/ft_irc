@@ -11,7 +11,8 @@ SRC	= 		main.cpp \
 			commands/USER.cpp \
 			commands/NICK.cpp \
 			commands/CAP.cpp \
-			commands/PING.cpp
+			commands/PING.cpp \
+			commands/PRIVMSG.cpp
 # 			Channel.cpp
 
 OBJDIR = 	obj

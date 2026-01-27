@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/25 17:13:22 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/27 13:08:35 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -252,8 +252,8 @@ void Server::handleCommand(Client* client, const Message& msg) {
 	// 	handleWhois(client, msg);
 	// else if (cmd == QUIT)
 		// handleQuit(client, msg);
-	// else if (cmd == "PRIVMSG")
-	// 	handleMsg(client, msg);
+	else if (cmd == "PRIVMSG")
+		handleMsg(client, msg);
 	// else if (cmd == "JOIN")
 	// 	handleJoin(client, msg);
 	// else if (cmd == "PART")
