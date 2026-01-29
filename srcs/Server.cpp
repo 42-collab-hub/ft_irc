@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/26 23:33:13 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/29 07:59:01 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -298,8 +298,8 @@ void Server::handleCommand(Client* client, const Message& msg) {
 	// 	handleMsg(client, msg);
 	// else if (cmd == "JOIN")
 	// 	handleJoin(client, msg);
-	// else if (cmd == "PART")
-	// 	handlePart(client, msg);
+	else if (cmd == "PART")
+		handlePart(client, msg);
 	// else if (cmd == "TOPIC")
 	// 	handleTopic(client, msg);
 	else

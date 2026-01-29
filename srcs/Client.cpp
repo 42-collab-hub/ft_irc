@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 10:45:13 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/26 23:31:27 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/29 08:00:58 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,11 @@ std::string Client::extractMessage() {
 	std::string message = _recvBuffer.substr(0, pos); // extract message without \r\n
 	_recvBuffer.erase(0, pos + 2); // remove from buffer including \r\n
 	return message;
+}
+
+std::string Client::getPrefix() 
+{
+	return _nickname + "!" + _username + "@" + _hostname;
 }
 
 void Client::setAuthenticated(bool status) { _autheticated = status; }

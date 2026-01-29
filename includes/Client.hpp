@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 08:38:00 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/26 23:04:39 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/29 06:26:44 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ public:
 	
 	bool 				isAuthenticated(void);
 	bool 				isRegistered(void);
+	std::string			getPrefix(void);
 	const std::string& 	getNickname(void);
 	const std::string& 	getUsername(void); 
 	const std::string& 	getRealname(void);

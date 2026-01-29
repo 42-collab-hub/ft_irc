@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/26 23:42:55 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/28 19:11:33 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ private:
 	bool isTakenNickname(Client* client, const std::string& newNickname);
 	void handleUser(Client* client, const Message& msg);
 	void handlePing(Client* client, const Message& msg);
+	void handlePart(Client* client, const Message& msg);
 	// void handleMsg(Client* client, const Message& msg);
 	void checkRegistration(Client* client);
 	void sendWelcome(Client* client);

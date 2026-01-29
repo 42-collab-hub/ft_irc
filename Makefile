@@ -13,6 +13,7 @@ SRC	= 		main.cpp \
 			commands/USER.cpp \
 			commands/NICK.cpp \
 			commands/CAP.cpp \
+			commands/PART.cpp \
 			commands/JOIN.cpp 
 
 OBJDIR = 	obj
