@@ -6,7 +6,7 @@
 /*   By: gholloco <gwendal.hollocou@orange.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/17 21:11:16 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/20 07:43:11 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/29 19:55:01 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # define CHANNEL_HPP
 
 class Client;
+class Server;
 # include <set>
 # include <string>
 
@@ -32,7 +33,7 @@ private:
 	std::set<Client*>		_invited;
 	
 public:
-	Channel(void);
+	Channel(std::string &name);
 	~Channel(void);
 
 	// getters
@@ -41,7 +42,9 @@ public:
 	bool					hasKey(void) const;
 	bool					hasUserLimit(void) const;
 	int						getId(void) const;
+	size_t					getMemberCount(void) const;
 	unsigned int			getUserLimit(void) const;
+	std::string 			getMemberList(void);
 	const std::string&		getTopic(void) const;
 	const std::string&		getName(void) const;
 	const std::string&		getPassword(void) const;
@@ -64,7 +67,7 @@ public:
 	bool					invite(Client* c);
 	bool					isInvited(Client* c) const;
 	bool					removeInvite(Client* c); 
-	void					broadcast(const std::string& msg, Client* c);
+	void					broadcast(Server& srv, const std::string& msg, Client* c);
 	
 };
 

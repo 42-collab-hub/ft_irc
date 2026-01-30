@@ -7,13 +7,16 @@ SRC	= 		main.cpp \
 			Server.cpp \
 			Client.cpp \
 			Message.cpp \
+			Channel.cpp \
 			commands/PASS.cpp \
+			commands/PING.cpp \
 			commands/USER.cpp \
 			commands/NICK.cpp \
 			commands/CAP.cpp \
-			commands/PING.cpp \
-			commands/PRIVMSG.cpp
-# 			Channel.cpp
+			commands/PRIVMSG.cpp \
+			commands/PART.cpp \
+			commands/TOPIC.cpp \
+			commands/JOIN.cpp
 
 OBJDIR = 	obj
 OBJ = 		$(SRC:%.cpp=$(OBJDIR)/%.o)

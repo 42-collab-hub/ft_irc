@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/27 16:10:49 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/30 13:05:39 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@
 #include <string>
 #include <map>
 #include "Client.hpp"
+#include "Channel.hpp"
+#include "Message.hpp"
 #include <poll.h>
 #include "Message.hpp"
 
@@ -32,7 +34,7 @@ private:
 	std::string				_password;
 	std::map<int, Client*> 	_clients;
 	std::vector<pollfd> 	_poll_fds;
-	// channels
+	std::vector<Channel*>	_channels;
 
 	static Server*			_instance; // static pointer to the Server object
 	bool					_running; // main loop flag
@@ -53,19 +55,30 @@ private:
 	void handleMsg(Client* client, const Message& msg);
 	void sendToUser(Client* sender, const std::string& target, const std::string& message);
 	void sendToChannel(Client* sender, const std::string& target, const std::string& message);
+	void handlePart(Client* client, const Message& msg);
+	void handleTopic(Client* client, const Message& msg);
+	void destroyChannel(Channel* channel);
 	void checkRegistration(Client* client);
 	void sendWelcome(Client* client);
+	void sendJoinMessage(Client* client, Channel* channel);
+	void handleJoin(Client* client, const Message& msg);
 	void shutdownServer(void);
-
 	// signal handling
 	static void registerSignalHandlers(void);
 	static void signalHandler(int signum);
+
+	Client* 	getClientByFd(int fd);
+	Channel* 	getChannel(const std::string& name);
+
+	void 		enablePollout(int fd);
+	void 		disablePollout(int fd);
 
 public:
 	Server(int port, const std::string& password);
 	~Server();
 	void run();
 	bool init();
+	void queueToClient(Client* c, const std::string& msg);
 };
 
 #endif

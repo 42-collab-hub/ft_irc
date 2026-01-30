@@ -6,14 +6,15 @@
 /*   By: gholloco <gwendal.hollocou@orange.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/17 21:14:56 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/20 07:45:59 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/29 20:03:12 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/Channel.hpp"
-#include "../includes/Client.hpp"
+#include "Channel.hpp"
+#include "Client.hpp"
+#include "Server.hpp"
 
-Channel::Channel(){}
+Channel::Channel(std::string &name) : _name(name) {}
 Channel::~Channel(){}
 
 // getters
@@ -42,6 +43,12 @@ int Channel::getId(void) const
 {
 	return this->_id;
 }
+
+size_t Channel::getMemberCount(void) const
+{
+	return this->_members.size();
+}
+
 unsigned int Channel::getUserLimit(void) const
 {
 	return this->_userLimit;
@@ -60,6 +67,19 @@ const std::string& Channel::getName(void) const
 const std::string& Channel::getPassword(void) const
 {
 	return this->_password;
+}
+
+std::string Channel::getMemberList(void) 
+{
+	std::string list;
+	for (std::set<Client*>::iterator it = this->_members.begin(); it != this->_members.end(); ++it)
+	{
+		if (this->_operators.count(*it))
+			list += "@";
+		list += (*it)->getNickname();
+		list += " ";
+	}
+	return list;
 }
 
 // setters
@@ -153,4 +173,11 @@ bool Channel::removeInvite(Client* c)
 	return this->_invited.erase(c) != 0;
 }
 
-// TODO: broadcast
+void Channel::broadcast(Server& srv, const std::string& msg, Client *c)
+{
+	for (std::set<Client*>::iterator it = this->_members.begin(); it != this->_members.end(); ++it)
+	{
+		if (*it != c)
+			srv.queueToClient(*it, msg + "\r\n"); 
+	}
+}

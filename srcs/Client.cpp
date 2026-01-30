@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 10:45:13 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/25 16:53:27 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/29 08:00:58 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,29 @@ Client::~Client() {}
 
 void Client::appendToBuffer(const char* data, size_t len) {
 	_recvBuffer.append(data, len);
+}
+
+void Client::queueMessage(const std::string& msg)
+{
+	_sendBuffer += msg;
+}
+
+void Client::flushMessage(void)
+{
+	if (_sendBuffer.empty())
+		return ;
+
+	ssize_t i = send(_fd, _sendBuffer.c_str(), _sendBuffer.size(), 0);
+
+	if (i <= 0) // message not sent so we don't erase it yet, retry on next POLLOUT
+		return ; 
+
+	_sendBuffer.erase(0, i);
+}
+
+bool Client::hasQueuedMessage() const
+{
+	return !_sendBuffer.empty();
 }
 
 bool Client::hasCompleteMessage() const {
@@ -30,6 +53,11 @@ std::string Client::extractMessage() {
 	std::string message = _recvBuffer.substr(0, pos); // extract message without \r\n
 	_recvBuffer.erase(0, pos + 2); // remove from buffer including \r\n
 	return message;
+}
+
+std::string Client::getPrefix() 
+{
+	return _nickname + "!" + _username + "@" + _hostname;
 }
 
 void Client::setAuthenticated(bool status) { _autheticated = status; }

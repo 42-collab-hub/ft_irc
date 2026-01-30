@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/27 13:08:35 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/30 13:10:07 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,6 +108,7 @@ void Server::run() {
 		for (size_t i = 0; i < _poll_fds.size(); i++) { // check each monitored fd at a time
 			int fd = _poll_fds[i].fd;
 			short revents = _poll_fds[i].revents;
+			Client* client = getClientByFd(fd);
 
 			if (revents == 0) // no activity
 				continue;
@@ -121,9 +122,18 @@ void Server::run() {
 					handleNewConnection();
 				else {
 					handleClientMessage(fd);
-					continue;
+					// continue;
 				}
 			}
+			if (revents & POLLOUT) { // client ready to receive
+				if (!client)
+					continue ;
+				client->flushMessage();
+				if (!client->hasQueuedMessage())
+					disablePollout(fd);
+			}
+			if (client && client->hasQueuedMessage())
+				enablePollout(fd);
 		}
 	}
 	shutdownServer();
@@ -152,6 +162,31 @@ void Server::handleNewConnection(void) {
 	_clients[clientFd] = newClient;
 	pollfd clientPollFd = {clientFd, POLLIN, 0};
 	_poll_fds.push_back(clientPollFd);
+}
+
+void Server::destroyChannel(Channel* channel)
+{
+	if (!channel)
+		return ;
+
+	std::string channelName = channel->getName();
+	for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
+	{
+		if (*it == channel)
+		{
+			delete *it;
+			_channels.erase(it);
+			std::cout << "destroyChannel destroyed channel : " << channelName << std::endl;
+			return ;
+		}
+	}
+}
+
+void Server::queueToClient(Client* c, const std::string& msg)
+{
+	if (!c)
+		return ;
+	sendToClient(c->getFd(), msg);
 }
 
 void Server::handleClientMessage(int fd) {
@@ -216,7 +251,38 @@ void Server::signalHandler(int signum) {
 
 void Server::sendToClient(int fd, const std::string& message) {
 	std::string msg = message + "\r\n";
-	send(fd, msg.c_str(), msg.length(), 0);
+	Client *c = getClientByFd(fd);
+	c->queueMessage(msg);
+	enablePollout(fd);
+	// send(fd, msg.c_str(), msg.length(), 0);
+}
+
+void Server::enablePollout(int fd)
+{
+	for (size_t i = 0; i < _poll_fds.size(); ++i)
+        if (_poll_fds[i].fd == fd) 
+		{ 
+			_poll_fds[i].events |= POLLOUT;
+			return; 
+		}
+}
+
+void Server::disablePollout(int fd)
+{
+	for (size_t i = 0; i < _poll_fds.size(); ++i)
+        if (_poll_fds[i].fd == fd) 
+		{ 
+			_poll_fds[i].events &= ~POLLOUT;
+			return; 
+		}
+}
+
+Client* Server::getClientByFd(int fd)
+{
+	std::map<int, Client*>::iterator it = _clients.find(fd);
+	if (it == _clients.end())
+		return NULL;
+	return it->second;
 }
 
 void Server::sendNumericReply(Client* client, const std::string& code, const std::string& params, const std::string& message) {
@@ -240,6 +306,8 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		handleNick(client, msg);
 	else if (cmd == "USER")
 		handleUser(client, msg);
+	else if (cmd == "JOIN")
+		handleJoin(client, msg);
 	else if (cmd == "PING")
 		handlePing(client, msg);
 	// else if (cmd == "INVITE")
@@ -254,12 +322,10 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		// handleQuit(client, msg);
 	else if (cmd == "PRIVMSG")
 		handleMsg(client, msg);
-	// else if (cmd == "JOIN")
-	// 	handleJoin(client, msg);
-	// else if (cmd == "PART")
-	// 	handlePart(client, msg);
-	// else if (cmd == "TOPIC")
-	// 	handleTopic(client, msg);
+	else if (cmd == "PART")
+		handlePart(client, msg);
+	else if (cmd == "TOPIC")
+		handleTopic(client, msg);
 	else
 		sendNumericReply(client, "421", cmd, "Unknown command");
 }
