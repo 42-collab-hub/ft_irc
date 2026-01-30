@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/30 13:10:07 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/30 19:24:19 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include <sstream> // std::ostringstream
 #include <signal.h> // signal()
 #include <ctime>
+#include <fcntl.h>
 
 Server* Server::_instance = NULL;
 
@@ -65,6 +66,9 @@ bool Server::init() {
 		std::cerr << "Error: Failed to create socket" << std::endl;
 		return false;
 	}
+
+	fcntl(_listenSocket, F_SETFL, O_NONBLOCK); // set socket to non-blocking
+
 	int opt = 1;
 	if (setsockopt(_listenSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
 		std::cerr << "Error: Failed to set socket options: " << strerror(errno) << std::endl;
@@ -157,6 +161,7 @@ void Server::handleNewConnection(void) {
 		std::cerr << "Error: Failed to accept connection: " << strerror(errno) << std::endl;
 		return ;
 	}
+	// fcntl(clientFd, F_SETFL, O_NONBLOCK); // set new Client socket to non-blocking
 	std::string hostname = inet_ntoa(address.sin_addr);
 	Client* newClient = new Client(clientFd, hostname);
 	_clients[clientFd] = newClient;
@@ -192,12 +197,14 @@ void Server::queueToClient(Client* c, const std::string& msg)
 void Server::handleClientMessage(int fd) {
 	char buffer[1024];
 	memset(buffer, 0, sizeof(buffer));
-	// TODO: handle blocking of recv with fcntl
+
 	ssize_t readBytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
 	if (readBytes <= 0) // reading error / client disconnected
 		return (removeClient(fd));
 	buffer[readBytes] = '\0';
+
+	// std::cout << "recv() got " << readBytes << " bytes: [" << buffer << "]" << std::endl;
 
 	Client* client = _clients[fd];
 	client->appendToBuffer(buffer, readBytes);
@@ -314,8 +321,8 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		// handleInvite(client, msg);
 	// else if (cmd == "KICK")
 		// handleKick(client, msg);
-	// else if (cmd == "MODE")
-	// 	handleMode(client, msg);
+	else if (cmd == "MODE")
+		handleMode(client, msg);
 	// else if (cmd == "WHOIS")
 	// 	handleWhois(client, msg);
 	// else if (cmd == QUIT)
