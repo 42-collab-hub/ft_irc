@@ -6,7 +6,7 @@
 /*   By: gholloco <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/23 13:19:11 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/29 07:46:19 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/29 20:04:49 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ void Server::sendJoinMessage(Client* client, Channel* channel)
 {
 	std::string clientName = client->getNickname();
 	std::string channelName = channel->getName();
-	channel->broadcast(":" + client->getPrefix() + " JOIN " + channelName, NULL);
+	channel->broadcast(*this, ":" + client->getPrefix() + " JOIN " + channelName, NULL);
 	sendToClient(client->getFd(), ":server 331 " + clientName + " " + channelName + " :No topic is set");
 	sendToClient(client->getFd(), ":server 353 " + clientName + " = " + channelName + " :@" + channel->getMemberList());
 	sendToClient(client->getFd(), ":server 366 " + clientName + " " + channelName + " :End of /NAMES list");

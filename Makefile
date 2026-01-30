@@ -14,6 +14,7 @@ SRC	= 		main.cpp \
 			commands/NICK.cpp \
 			commands/CAP.cpp \
 			commands/PART.cpp \
+			commands/TOPIC.cpp \
 			commands/JOIN.cpp 
 
 OBJDIR = 	obj

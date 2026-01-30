@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/29 07:59:01 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/30 09:04:11 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,8 @@ void Server::run() {
 				if (!client)
 					continue ;
 				client->flushMessage();
-				disablePollout(fd);
+				if (!client->hasQueuedMessage())
+					disablePollout(fd);
 			}
 			if (client && client->hasQueuedMessage())
 				enablePollout(fd);
@@ -161,6 +162,31 @@ void Server::handleNewConnection(void) {
 	_clients[clientFd] = newClient;
 	pollfd clientPollFd = {clientFd, POLLIN, 0};
 	_poll_fds.push_back(clientPollFd);
+}
+
+void Server::destroyChannel(Channel* channel)
+{
+	if (!channel)
+		return ;
+
+	std::string channelName = channel->getName();
+	for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
+	{
+		if (*it == channel)
+		{
+			delete *it;
+			_channels.erase(it);
+			std::cout << "destroyChannel destroyed channel : " << channelName << std::endl;
+			return ;
+		}
+	}
+}
+
+void Server::queueToClient(Client* c, const std::string& msg)
+{
+	if (!c)
+		return ;
+	sendToClient(c->getFd(), msg);
 }
 
 void Server::handleClientMessage(int fd) {
@@ -300,8 +326,8 @@ void Server::handleCommand(Client* client, const Message& msg) {
 	// 	handleJoin(client, msg);
 	else if (cmd == "PART")
 		handlePart(client, msg);
-	// else if (cmd == "TOPIC")
-	// 	handleTopic(client, msg);
+	else if (cmd == "TOPIC")
+		handleTopic(client, msg);
 	else
 		sendNumericReply(client, "421", cmd, "Unknown command");
 }

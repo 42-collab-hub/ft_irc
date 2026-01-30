@@ -6,7 +6,7 @@
 /*   By: gholloco <gwendal.hollocou@orange.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/28 18:51:34 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/29 07:58:30 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/30 09:03:52 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 #include "Message.hpp"
 #include "Channel.hpp"
 
-// TODO: IF CHANNEL BECOMES EMPTY, DESTROY IT
 void Server::handlePart(Client* client, const Message& msg)
 {
 	std::string clientName = client->getNickname();
@@ -48,7 +47,9 @@ void Server::handlePart(Client* client, const Message& msg)
 	std::string partMessage = ":" + client->getPrefix() + " PART " + channelName;
 	if (!reason.empty())
 		partMessage += " :" + reason;
-	chan->broadcast(partMessage, NULL);
+	chan->broadcast(*this, partMessage, NULL);
 	chan->removeOperator(client);
 	chan->removeMember(client);
+	if (chan->getMemberCount() == 0)
+		destroyChannel(chan);
 }

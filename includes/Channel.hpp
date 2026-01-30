@@ -6,7 +6,7 @@
 /*   By: gholloco <gwendal.hollocou@orange.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/17 21:11:16 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/26 20:19:21 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/29 19:55:01 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # define CHANNEL_HPP
 
 class Client;
+class Server;
 # include <set>
 # include <string>
 
@@ -66,7 +67,7 @@ public:
 	bool					invite(Client* c);
 	bool					isInvited(Client* c) const;
 	bool					removeInvite(Client* c); 
-	void					broadcast(const std::string& msg, Client* c);
+	void					broadcast(Server& srv, const std::string& msg, Client* c);
 	
 };
 

@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/28 19:11:33 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/29 20:19:30 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,8 @@ private:
 	void handleUser(Client* client, const Message& msg);
 	void handlePing(Client* client, const Message& msg);
 	void handlePart(Client* client, const Message& msg);
+	void handleTopic(Client* client, const Message& msg);
+	void destroyChannel(Channel* channel);
 	// void handleMsg(Client* client, const Message& msg);
 	void checkRegistration(Client* client);
 	void sendWelcome(Client* client);
@@ -74,6 +76,7 @@ public:
 	~Server();
 	void run();
 	bool init();
+	void queueToClient(Client* c, const std::string& msg);
 };
 
 #endif

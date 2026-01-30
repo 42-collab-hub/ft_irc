@@ -6,12 +6,13 @@
 /*   By: gholloco <gwendal.hollocou@orange.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/17 21:14:56 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/26 23:31:39 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/29 20:03:12 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/Channel.hpp"
-#include "../includes/Client.hpp"
+#include "Channel.hpp"
+#include "Client.hpp"
+#include "Server.hpp"
 
 Channel::Channel(std::string &name) : _name(name) {}
 Channel::~Channel(){}
@@ -172,11 +173,11 @@ bool Channel::removeInvite(Client* c)
 	return this->_invited.erase(c) != 0;
 }
 
-void Channel::broadcast(const std::string& msg, Client *c)
+void Channel::broadcast(Server& srv, const std::string& msg, Client *c)
 {
 	for (std::set<Client*>::iterator it = this->_members.begin(); it != this->_members.end(); ++it)
 	{
 		if (*it != c)
-			(*it)->queueMessage(msg + "\r\n"); 
+			srv.queueToClient(*it, msg + "\r\n"); 
 	}
 }
