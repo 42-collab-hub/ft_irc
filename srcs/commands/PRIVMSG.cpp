@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/25 16:17:02 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/27 17:53:23 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/31 18:35:28 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,27 +17,34 @@
 #include <iostream>
 
 void Server::sendToChannel(Client* sender, const std::string& target, const std::string& message) {
-	(void)sender;
-	(void)target;
-	(void)message;
+	Channel* channel = getChannelByName(target); // check if such channel exists
+	if (!channel) {
+		sendNumericReply(sender, "403", target, "No such channel");
+		return;
+	}
+	// channel name is stored with # or not?
+	
+	if (!channel->isMember(sender)) { // check if sender is in the channel
+		sendNumericReply(sender, "404", target, "Cannot send to channel");
+		return;
+	}
+	std::string fullMsg = ":" + sender->getPrefix() + " PRIVMSG " + target + " :" + message;
+	channel->broadcast(*this, fullMsg, sender);
+
 }
 
 void Server::sendToUser(Client* sender, const std::string& target, const std::string& message) {
-	// check if such client exists
-	std::map<int, Client*>::iterator it;
-	for (it = _clients.begin(); it != _clients.end(); it++) {
-		if (it->second->getNickname() == target)
-			break;
-	}
-	if (it == _clients.end()) { // no client can be found for the supplied nickname
+	Client* recipient = getClientByNick(target); // check if such client exists
+	if (!recipient) {
 		sendNumericReply(sender, "401", target, "No such nick/channel");
 		return;
 	}
+	
 	std::string fullMsg = 	":" + sender->getNickname() + "!" +
 							sender->getUsername() + "@" +
 							sender->getHostname() + " PRIVMSG " +
 							target + " :" + message;
-	sendToClient(it->second->getFd(), fullMsg);
+	sendToClient(recipient->getFd(), fullMsg);
 }
 
 

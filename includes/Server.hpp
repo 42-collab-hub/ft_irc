@@ -6,25 +6,25 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/30 13:05:39 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/31 18:36:32 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-#define IRC_MESSAGE_MAX_LENGTH 512
+#define IRC_MESSAGE_MAX_LENGTH 510
 #define USERLEN 12
 
-#include <netinet/in.h> // for holding the IP address & port - contains structure and variable definitions
-#include <arpa/inet.h> // inet_pton and similar
-#include <string>
-#include <map>
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "Message.hpp"
+#include <netinet/in.h> // for holding the IP address & port - contains structure and variable definitions
+#include <arpa/inet.h> // inet_pton and similar
+#include <string>
+#include <vector>
+#include <map>
 #include <poll.h>
-#include "Message.hpp"
 
 class Server {
 private:
@@ -38,6 +38,9 @@ private:
 
 	static Server*			_instance; // static pointer to the Server object
 	bool					_running; // main loop flag
+
+	Server(const Server& src);
+	Server& operator=(const Server& other);
 
 	void setServerCreationTime(void); 
 	void handleNewConnection(void);
@@ -63,11 +66,14 @@ private:
 	void sendJoinMessage(Client* client, Channel* channel);
 	void handleJoin(Client* client, const Message& msg);
 	void shutdownServer(void);
+	
 	// signal handling
 	static void registerSignalHandlers(void);
 	static void signalHandler(int signum);
 
 	Client* 	getClientByFd(int fd);
+	Client*		getClientByNick(const std::string& nick);
+	Channel*	getChannelByName(const std::string& name);
 	Channel* 	getChannel(const std::string& name);
 
 	void 		enablePollout(int fd);
@@ -76,8 +82,8 @@ private:
 public:
 	Server(int port, const std::string& password);
 	~Server();
+	void init();
 	void run();
-	bool init();
 	void queueToClient(Client* c, const std::string& msg);
 };
 
