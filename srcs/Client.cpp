@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 10:45:13 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/29 08:00:58 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/30 20:40:13 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ std::string Client::extractMessage() {
 	return message;
 }
 
-std::string Client::getPrefix() 
+std::string Client::getPrefix() const
 {
 	return _nickname + "!" + _username + "@" + _hostname;
 }
@@ -67,10 +67,10 @@ void Client::setUsername(const std::string& str) { _username = str; }
 void Client::setRealname(const std::string& str) { _realname = str; }
 void Client::setHostname(const std::string& str) { _hostname = str; }
 
-bool Client::isAuthenticated(void) { return _autheticated; }
-bool Client::isRegistered(void) { return _registered; }
-const std::string& Client::getNickname(void) { return _nickname; }
-const std::string& Client::getUsername(void) { return _username; } 
-const std::string& Client::getRealname(void) { return _realname; }
-const std::string& Client::getHostname(void) { return _hostname; }
-int Client::getFd(void) { return this->_fd; }
+bool Client::isAuthenticated(void) const { return _autheticated; }
+bool Client::isRegistered(void) const { return _registered; }
+const std::string& Client::getNickname(void) const { return _nickname; }
+const std::string& Client::getUsername(void) const { return _username; } 
+const std::string& Client::getRealname(void) const { return _realname; }
+const std::string& Client::getHostname(void) const { return _hostname; }
+int Client::getFd(void) const { return this->_fd; }

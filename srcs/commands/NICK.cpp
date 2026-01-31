@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/24 20:40:43 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/25 16:51:55 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/31 13:10:41 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,11 +75,11 @@ void Server::handleNick(Client* client, const Message& msg) {
 		return;
 	}
 
+	std::string oldPrefix = "";
+	if (client->isRegistered() && !currentNick.empty() && currentNick != "*")
+		oldPrefix = client->getPrefix();
 	client->setNickname(newNickname);
 	checkRegistration(client);
-
-	std::string user = client->getUsername();
-	std::string host = client->getHostname();
-	if (client->isRegistered() && !currentNick.empty() && currentNick != "*")
-		sendToClient(client->getFd(), ":" + currentNick + "!" + user + "@" + host + " NICK :" + newNickname);
+	if (!oldPrefix.empty())
+		sendToClient(client->getFd(), ":" + oldPrefix + " NICK :" + newNickname);
 }

@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 08:38:00 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/29 06:26:44 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/31 11:35:10 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,6 @@ private:
 	std::string			_sendBuffer; // send buffer
 	bool				_autheticated; // client authentification state
 	bool				_registered; // client registration state
-	// channels
 	
 public:
 	Client(int fd, const std::string& hostname);
@@ -52,14 +51,14 @@ public:
 	void				setRealname(const std::string& str);
 	void				setHostname(const std::string& str);
 	
-	bool 				isAuthenticated(void);
-	bool 				isRegistered(void);
-	std::string			getPrefix(void);
-	const std::string& 	getNickname(void);
-	const std::string& 	getUsername(void); 
-	const std::string& 	getRealname(void);
-	const std::string& 	getHostname(void);
-	int 				getFd(void);
+	bool 				isAuthenticated(void) const;
+	bool 				isRegistered(void) const;
+	std::string			getPrefix(void) const;
+	const std::string& 	getNickname(void) const;
+	const std::string& 	getUsername(void) const; 
+	const std::string& 	getRealname(void) const;
+	const std::string& 	getHostname(void) const;
+	int 				getFd(void) const;
 };
 
 #endif
