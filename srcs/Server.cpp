@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/30 09:04:11 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/02/01 21:19:28 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,12 @@ Server::~Server() {
         close(it->first);
         delete it->second;
     }
+    for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
+        delete *it;
+    }
+	
     _clients.clear();
+	_channels.clear();
 	_poll_fds.clear();
 }
 
