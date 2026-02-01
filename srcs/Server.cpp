@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/31 17:50:49 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/01 21:15:28 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,12 @@ Server::~Server() {
         close(it->first);
         delete it->second;
     }
+    for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
+        delete *it;
+    }
+	
     _clients.clear();
+	_channels.clear();
 	_poll_fds.clear();
 }
 
@@ -329,12 +334,10 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		// handleInvite(client, msg);
 	// else if (cmd == "KICK")
 		// handleKick(client, msg);
-	else if (cmd == "MODE")
-		handleMode(client, msg);
 	// else if (cmd == "WHOIS")
 	// 	handleWhois(client, msg);
-	// else if (cmd == QUIT)
-		// handleQuit(client, msg);
+	// else if (cmd == "QUIT")
+	// 	handleQuit(client, msg);
 	else if (cmd == "PRIVMSG")
 		handleMsg(client, msg);
 	else if (cmd == "PART")
