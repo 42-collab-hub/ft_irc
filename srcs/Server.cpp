@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/01 21:15:28 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/02 19:05:33 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,14 +127,15 @@ void Server::run() {
 				else
 					handleClientMessage(fd);
 			}
+			client = getClientByFd(fd); // re-fetch client
+			if (!client) // check if client disconnected
+				continue;
 			if (revents & POLLOUT) { // client ready to receive
-				if (!client)
-					continue;
 				client->flushMessage(); // send message
 				if (!client->hasQueuedMessage())
 					disablePollout(fd);
 			}
-			if (client && client->hasQueuedMessage())
+			if (client->hasQueuedMessage())
 				enablePollout(fd);
 		}
 	}
@@ -330,14 +331,16 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		handleJoin(client, msg);
 	else if (cmd == "PING")
 		handlePing(client, msg);
+	else if (cmd == "MODE")
+		handleMode(client, msg);
 	// else if (cmd == "INVITE")
 		// handleInvite(client, msg);
 	// else if (cmd == "KICK")
 		// handleKick(client, msg);
 	// else if (cmd == "WHOIS")
 	// 	handleWhois(client, msg);
-	// else if (cmd == "QUIT")
-	// 	handleQuit(client, msg);
+	else if (cmd == "QUIT")
+		handleQuit(client, msg);
 	else if (cmd == "PRIVMSG")
 		handleMsg(client, msg);
 	else if (cmd == "PART")

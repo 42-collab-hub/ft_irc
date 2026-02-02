@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/31 18:36:32 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/02 17:39:28 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,8 @@ private:
 	void sendWelcome(Client* client);
 	void sendJoinMessage(Client* client, Channel* channel);
 	void handleJoin(Client* client, const Message& msg);
+	void handleMode(Client* client, const Message& msg);
+	void handleQuit(Client* client, const Message& msg);
 	void shutdownServer(void);
 	
 	// signal handling

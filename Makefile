@@ -16,7 +16,9 @@ SRC	= 		main.cpp \
 			commands/PRIVMSG.cpp \
 			commands/PART.cpp \
 			commands/TOPIC.cpp \
-			commands/JOIN.cpp
+			commands/JOIN.cpp \
+			commands/MODE.cpp \
+			commands/QUIT.cpp
 
 OBJDIR = 	obj
 OBJ = 		$(SRC:%.cpp=$(OBJDIR)/%.o)
