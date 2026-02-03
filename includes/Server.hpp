@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/29 20:19:30 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/02/01 06:01:54 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,8 @@ private:
 	void handlePing(Client* client, const Message& msg);
 	void handlePart(Client* client, const Message& msg);
 	void handleTopic(Client* client, const Message& msg);
+	void handleInvite(Client* client, const Message& msg);
+	void handleKick(Client* client, const Message& msg);
 	void destroyChannel(Channel* channel);
 	// void handleMsg(Client* client, const Message& msg);
 	void checkRegistration(Client* client);
@@ -66,6 +68,7 @@ private:
 	static void signalHandler(int signum);
 
 	Client* 	getClientByFd(int fd);
+	Client* 	getClientByName(std::string& name);
 	Channel* 	getChannel(const std::string& name);
 
 	void 		enablePollout(int fd);

@@ -290,6 +290,16 @@ Client* Server::getClientByFd(int fd)
 	return it->second;
 }
 
+Client* Server::getClientByName(std::string& name)
+{
+	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		if ((*it).second->getNickname() == name)
+			return (*it).second;
+	}
+	return NULL;
+}
+
 void Server::sendNumericReply(Client* client, const std::string& code, const std::string& params, const std::string& message) {
 	std::string target = client->getNickname().empty() ? "*" : client->getNickname();
 	std::string reply = ":server " + code + " " + target;
@@ -315,10 +325,10 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		handleJoin(client, msg);
 	else if (cmd == "PING")
 		handlePing(client, msg);
-	// else if (cmd == "INVITE")
-		// handleInvite(client, msg);
-	// else if (cmd == "KICK")
-		// handleKick(client, msg);
+	else if (cmd == "INVITE")
+		handleInvite(client, msg);
+	else if (cmd == "KICK")
+		handleKick(client, msg);
 	// else if (cmd == "MODE")
 	// 	handleMode(client, msg);
 	// else if (cmd == "WHOIS")
@@ -327,8 +337,6 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		// handleQuit(client, msg);
 	// else if (cmd == "PRIVMSG")
 	// 	handleMsg(client, msg);
-	// else if (cmd == "JOIN")
-	// 	handleJoin(client, msg);
 	else if (cmd == "PART")
 		handlePart(client, msg);
 	else if (cmd == "TOPIC")
