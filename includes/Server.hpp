@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/02 17:39:28 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/03 18:47:32 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #define IRC_MESSAGE_MAX_LENGTH 510
 #define USERLEN 12
+#define NICKLEN 9
 
 #include "Client.hpp"
 #include "Channel.hpp"
@@ -28,6 +29,7 @@
 
 class Server {
 private:
+	std::string				_serverName;
 	std::string				_creationTime;
 	int						_listenSocket;
 	int						_port;

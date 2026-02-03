@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/02 19:05:33 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/03 18:58:21 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ Server::Server(int port, const std::string& password) {
 	_port = port;
 	_password = password;
 	_listenSocket = -1;
-	
+	_serverName = "ircserv";
 	_instance = this;
 	_running = true;
 	setServerCreationTime();
@@ -45,7 +45,7 @@ void Server::setServerCreationTime() {
     
     time(&timestamp);
     datetime = *localtime(&timestamp);
-    strftime(output, 50, "%a %b %d %H:%M:%S %Y", &datetime);
+    std::strftime(output, sizeof(output), "%a %b %d %Y %H:%M:%S", &datetime);
     _creationTime = output;
 }
 
@@ -306,9 +306,14 @@ Client* Server::getClientByFd(int fd) {
 	return it->second;
 }
 
+	// sendNumericReply(client, "004", "", _serverName + " 1.0 - iktol");
+	// sendNumericReply(client, "004", client->getNickname(), "ircserv 1.0 - iktol");
+	// sendToClient(client->getFd(), ":" + _serverName + " 004 " + client->getNickname() + " " + _serverName + " 1.0 - iktol");
+
+
 void Server::sendNumericReply(Client* client, const std::string& code, const std::string& params, const std::string& message) {
 	std::string target = client->getNickname().empty() ? "*" : client->getNickname();
-	std::string reply = ":server " + code + " " + target;
+	std::string reply = ":" + _serverName + " " + code + " " + target;
 
 	if (!params.empty())
 		reply += " " + params;

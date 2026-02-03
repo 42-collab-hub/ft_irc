@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/24 20:40:43 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/31 13:10:41 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/03 18:47:15 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 #include <string>
 
 static bool isValidNickname(const std::string& str) { // validate nickname character set
-	if (str.empty() || str.length() > 9)
+	if (str.empty() || str.length() > NICKLEN)
 		return false;
 
 	std::string set = "[]{}\\|`_^";
