@@ -6,7 +6,7 @@
 /*   By: gholloco <gwendal.hollocou@orange.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/28 18:51:34 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/30 09:03:52 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/02/02 21:29:13 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,6 @@ void Server::handlePart(Client* client, const Message& msg)
 	if (!reason.empty())
 		partMessage += " :" + reason;
 	chan->broadcast(*this, partMessage, NULL);
-	chan->removeOperator(client);
 	chan->removeMember(client);
 	if (chan->getMemberCount() == 0)
 		destroyChannel(chan);

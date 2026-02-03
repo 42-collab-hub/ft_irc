@@ -6,7 +6,7 @@
 /*   By: gholloco <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/23 13:19:11 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/29 20:04:49 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/01/31 04:40:01 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,10 @@ void Server::sendJoinMessage(Client* client, Channel* channel)
 	std::string clientName = client->getNickname();
 	std::string channelName = channel->getName();
 	channel->broadcast(*this, ":" + client->getPrefix() + " JOIN " + channelName, NULL);
-	sendToClient(client->getFd(), ":server 331 " + clientName + " " + channelName + " :No topic is set");
+	if (channel->getTopic().empty())
+		sendNumericReply(client, "331", channelName, " :No topic is set");
+	else
+		sendNumericReply(client, "332", channelName, ":" + channel->getTopic());
 	sendToClient(client->getFd(), ":server 353 " + clientName + " = " + channelName + " :@" + channel->getMemberList());
 	sendToClient(client->getFd(), ":server 366 " + clientName + " " + channelName + " :End of /NAMES list");
 }
@@ -78,7 +81,7 @@ void Server::handleJoin(Client* client, const Message& msg)
 	if (chan)
 	{
 		if (chan->isMember(client)) // client is already member of this chan
-			sendNumericReply(client, "443", chan->getName(), ":is already on channel");
+			sendNumericReply(client, "443", channelName, ":is already on channel");
 		if (chan->isInviteOnly() && !chan->isInvited(client))
 			sendNumericReply(client, "473", "", ":Cannot join channel (+i)");
 		if (chan->hasKey() && key != chan->getPassword())
@@ -92,16 +95,11 @@ void Server::handleJoin(Client* client, const Message& msg)
 	}
 	else
 	{
-		// create new channel, name is already validated
 		Channel* newChan = new Channel(channelName);
 		_channels.push_back(newChan);
 		newChan->addMember(client);
 		newChan->addOperator(client);
 		sendJoinMessage(client, newChan);
-		// sendToClient(client->getFd(), ":" + client->getPrefix() + " JOIN " + channelName);
-		// sendToClient(client->getFd(), ":server 331 " + clientName + " " + channelName + " :No topic is set");
-		// sendToClient(client->getFd(), ":server 353 " + clientName + " = " + channelName + " :@" + newChan->getMemberList());
-		// sendToClient(client->getFd(), ":server 366 " + clientName + " " + channelName + " :End of /NAMES list");
 		std::cout << "Sucessfully created the channel : " << channelName << std::endl;
 	}
 	

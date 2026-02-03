@@ -15,6 +15,8 @@ SRC	= 		main.cpp \
 			commands/CAP.cpp \
 			commands/PART.cpp \
 			commands/TOPIC.cpp \
+			commands/INVITE.cpp \
+			commands/KICK.cpp \
 			commands/JOIN.cpp 
 
 OBJDIR = 	obj
