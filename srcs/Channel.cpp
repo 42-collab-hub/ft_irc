@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gholloco <gwendal.hollocou@orange.fr>      +#+  +:+       +#+        */
+/*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/17 21:14:56 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/29 20:03:12 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/02/01 20:43:26 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,10 +74,12 @@ std::string Channel::getMemberList(void)
 	std::string list;
 	for (std::set<Client*>::iterator it = this->_members.begin(); it != this->_members.end(); ++it)
 	{
+		if (!list.empty())
+			list += " "; // FIX: add space before -> no trailing space in the returned member list
 		if (this->_operators.count(*it))
 			list += "@";
 		list += (*it)->getNickname();
-		list += " ";
+		// list += " ";
 	}
 	return list;
 }
