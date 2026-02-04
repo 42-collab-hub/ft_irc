@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/18 18:54:01 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/25 16:53:10 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/04 14:21:59 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #include "Message.hpp"
 
 void Server::handleUser(Client* client, const Message& msg) {
+	if (!_password.empty() && !client->isAuthenticated()) // NICK + USER only after PASS
+		return;
 	if (client->isRegistered()) { // user may not reregister ERR_ALREADYREGISTERED 462
 		sendNumericReply(client, "462", "", "You may not reregister");
 		return;
