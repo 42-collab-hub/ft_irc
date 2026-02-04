@@ -6,13 +6,14 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 08:38:00 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/20 12:27:28 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/31 11:35:10 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
+#include <sys/socket.h>
 #include <vector>
 #include <string>
 
@@ -24,9 +25,9 @@ private:
 	std::string			_hostname;
 	std::string			_realname;
 	std::string			_recvBuffer; // receive buffer (for partial messages)
+	std::string			_sendBuffer; // send buffer
 	bool				_autheticated; // client authentification state
 	bool				_registered; // client registration state
-	// channels
 	
 public:
 	Client(int fd, const std::string& hostname);
@@ -36,6 +37,11 @@ public:
 	void 				appendToBuffer(const char* data, size_t len);
 	bool 				hasCompleteMessage() const;
 	std::string 		extractMessage();
+
+	// message sending
+	void 				queueMessage(const std::string& msg);
+	void 				flushMessage(void);
+	bool				hasQueuedMessage(void) const;
 	
 	// Client authentication & registration methods
 	void 				setAuthenticated(bool status);
@@ -45,13 +51,14 @@ public:
 	void				setRealname(const std::string& str);
 	void				setHostname(const std::string& str);
 	
-	bool 				isAuthenticated(void);
-	bool 				isRegistered(void);
-	const std::string& 	getNickname(void);
-	const std::string& 	getUsername(void); 
-	const std::string& 	getRealname(void);
-	const std::string& 	getHostname(void);
-	int 				getFd(void);
+	bool 				isAuthenticated(void) const;
+	bool 				isRegistered(void) const;
+	std::string			getPrefix(void) const;
+	const std::string& 	getNickname(void) const;
+	const std::string& 	getUsername(void) const; 
+	const std::string& 	getRealname(void) const;
+	const std::string& 	getHostname(void) const;
+	int 				getFd(void) const;
 };
 
 #endif

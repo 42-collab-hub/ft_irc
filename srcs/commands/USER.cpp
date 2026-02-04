@@ -6,13 +6,14 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/18 18:54:01 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/04 14:21:59 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/04 14:40:32 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
-#include "Client.hpp"
 #include "Message.hpp"
+#include "Client.hpp"
+#include <iostream>
 
 void Server::handleUser(Client* client, const Message& msg) {
 	if (!_password.empty() && !client->isAuthenticated()) // NICK + USER only after PASS

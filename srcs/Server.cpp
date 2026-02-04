@@ -6,27 +6,33 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/25 17:13:22 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/03 18:58:21 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 #include "Message.hpp"
 #include "Client.hpp"
+#include "Channel.hpp"
 #include <iostream>
-#include <cstring> // std::strlen
+#include <cstring> // memset
 #include <sys/socket.h> // socket() setsockopt()
 #include <netinet/in.h> // struct sockaddr_in
 #include <unistd.h> // close
 #include <cerrno> // errno
 #include <poll.h> // poll()
-#include <sstream> // std::ostringstream
 #include <signal.h> // signal()
 #include <ctime>
+#include <fcntl.h>
+#include <exception>
 
 Server* Server::_instance = NULL;
 
-Server::Server(int port, const std::string& password) : _port(port), _password(password) {
+Server::Server(int port, const std::string& password) {
+	_port = port;
+	_password = password;
+	_listenSocket = -1;
+	_serverName = "ircserv";
 	_instance = this;
 	_running = true;
 	setServerCreationTime();
@@ -39,62 +45,60 @@ void Server::setServerCreationTime() {
     
     time(&timestamp);
     datetime = *localtime(&timestamp);
-    strftime(output, 50, "%a %b %d %H:%M:%S %Y", &datetime);
+    std::strftime(output, sizeof(output), "%a %b %d %Y %H:%M:%S", &datetime);
     _creationTime = output;
 }
 
 Server::~Server() {
-	close(_listenSocket);
-    // Close all client sockets and free memory
+	if (_listenSocket >= 0)
+		close(_listenSocket);
+
     for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
         close(it->first);
         delete it->second;
     }
+    for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
+        delete *it;
+    }
+	
     _clients.clear();
+	_channels.clear();
 	_poll_fds.clear();
 }
 
-bool Server::init() {
-	// struct sockaddr_in address; // structure describing an Internet socket address
-	struct sockaddr_in address;
-
-	std::cout << "Starting IRC server..." << std::endl;
-
+void Server::init() {
 	_listenSocket = socket(AF_INET, SOCK_STREAM, 0);
-	if (_listenSocket < 0) {
-		std::cerr << "Error: Failed to create socket" << std::endl;
-		return false;
-	}
+	if (_listenSocket < 0)
+		throw std::runtime_error(std::string("Failed to create socket: ") + strerror(errno));
+
+	fcntl(_listenSocket, F_SETFL, O_NONBLOCK); // set server socket to non-blocking mode
+
 	int opt = 1;
 	if (setsockopt(_listenSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-		std::cerr << "Error: Failed to set socket options: " << strerror(errno) << std::endl;
 		close(_listenSocket);
-		return false;
+		throw std::runtime_error(std::string("Failed to set socket options: ") + strerror(errno));
 	}
+
+	struct sockaddr_in address; // structure describing an Internet socket address
 	memset(&address, 0, sizeof(address));
 	address.sin_family = AF_INET; // IPv4
 	address.sin_addr.s_addr = INADDR_ANY; // 0.0.0.0 listen on all interfaces
 	address.sin_port = htons(_port); // convert from host byte order to network byte order
 
-	if (bind(_listenSocket, (sockaddr*)&address, sizeof(address)) < 0) { 	// bind socket + error handling
-		std::cerr << "Error: failed to bind socket: " << strerror(errno) << std::endl;
+	if (bind(_listenSocket, (sockaddr*)&address, sizeof(address)) < 0) { // bind socket
 		close(_listenSocket);
-		return false;
+		throw std::runtime_error(std::string("Failed to bind socket: ") + strerror(errno));
 	}
 	// address is a pointer to a struct sockaddr that contains the IP address and port number to bind the socket
 	// sizeof(address) is size of the addr structure
 
 	if (listen(_listenSocket, 10) < 0) { // set listening socket to passive mode - waits for new connections
-		std::cerr << "Error: Failed to listen: " << strerror(errno) << std::endl;
 		close(_listenSocket);
-		return false;
+		throw std::runtime_error(std::string("Failed to listen: ") + strerror(errno));
 	}
+	
 	pollfd listenPollFd = {_listenSocket, POLLIN, 0};
 	_poll_fds.push_back(listenPollFd);
-
-	std::cout << "Server is running" << std::endl;
-
-	return true;
 }
 
 void Server::run() {
@@ -108,6 +112,7 @@ void Server::run() {
 		for (size_t i = 0; i < _poll_fds.size(); i++) { // check each monitored fd at a time
 			int fd = _poll_fds[i].fd;
 			short revents = _poll_fds[i].revents;
+			Client* client = getClientByFd(fd);
 
 			if (revents == 0) // no activity
 				continue;
@@ -119,18 +124,26 @@ void Server::run() {
 			if (revents & POLLIN) { // incoming client activity
 				if (fd == _listenSocket)
 					handleNewConnection();
-				else {
+				else
 					handleClientMessage(fd);
-					continue;
-				}
 			}
+			client = getClientByFd(fd); // re-fetch client
+			if (!client) // check if client disconnected
+				continue;
+			if (revents & POLLOUT) { // client ready to receive
+				client->flushMessage(); // send message
+				if (!client->hasQueuedMessage())
+					disablePollout(fd);
+			}
+			if (client->hasQueuedMessage())
+				enablePollout(fd);
 		}
 	}
 	shutdownServer();
 }
 
 void Server::shutdownServer() { // send shutdown message to clients
-	std::string message = "Shutting down server";
+	std::string message = "Shutting down IRC server...";
 	std::cout << "\n" + message << std::endl;
 	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
 		int fd = it->first;
@@ -147,6 +160,7 @@ void Server::handleNewConnection(void) {
 		std::cerr << "Error: Failed to accept connection: " << strerror(errno) << std::endl;
 		return ;
 	}
+	fcntl(clientFd, F_SETFL, O_NONBLOCK); // set new Client socket to non-blocking
 	std::string hostname = inet_ntoa(address.sin_addr);
 	Client* newClient = new Client(clientFd, hostname);
 	_clients[clientFd] = newClient;
@@ -154,35 +168,65 @@ void Server::handleNewConnection(void) {
 	_poll_fds.push_back(clientPollFd);
 }
 
+void Server::destroyChannel(Channel* channel)
+{
+	if (!channel)
+		return ;
+
+	std::string channelName = channel->getName();
+	for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
+	{
+		if (*it == channel)
+		{
+			delete *it;
+			_channels.erase(it);
+			std::cout << "destroyChannel destroyed channel : " << channelName << std::endl;
+			return ;
+		}
+	}
+}
+
+void Server::queueToClient(Client* c, const std::string& msg)
+{
+	if (!c)
+		return ;
+	sendToClient(c->getFd(), msg);
+}
+
 void Server::handleClientMessage(int fd) {
 	char buffer[1024];
 	memset(buffer, 0, sizeof(buffer));
-	// TODO: handle blocking of recv with fcntl
+
 	ssize_t readBytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
 	if (readBytes <= 0) // reading error / client disconnected
 		return (removeClient(fd));
 	buffer[readBytes] = '\0';
 
-	Client* client = _clients[fd];
+	Client* client = getClientByFd(fd);
+	if (!client) {
+		std::cerr << "Error: Client not found for fd " << fd << std::endl;
+		return;
+	}
 	client->appendToBuffer(buffer, readBytes);
 
 	while (client->hasCompleteMessage()) {
 		std::string raw = client->extractMessage(); // extract single message
 		std::cout  << "Processing: " << raw << std::endl;
-		if (raw.size() > IRC_MESSAGE_MAX_LENGTH) { // Message is too long ERR_INPUTTOOLONG 417
-			std::string error = ":server 417 :Input line was too long\r\n"; // TODO: fix error reply format
-			send(fd, error.c_str(), error.size(), 0);
-			return;
+
+		if (raw.size() > IRC_MESSAGE_MAX_LENGTH) // Message is too long ERR_INPUTTOOLONG 417
+			sendNumericReply(client, "417", "", "Input line was too long");
+		else {
+			Message msg;
+			msg.parse(raw); // parse single message
+			handleCommand(client, msg); // execute single command
+
+			client = getClientByFd(fd); // re-fetch pointer
+			if (!client) {
+				std::cout << "Client removed, stopping message processing" << std::endl;
+				return;
+			}
 		}
-		Message msg;
-		msg.parse(raw); // parse single message
-		handleCommand(client, msg); // execute single command
-		if (_clients.find(fd) == _clients.end()) { // Client was disconnected due to error - stop processing
-			std::cout << "Client removed, stopping message processing" << std::endl;
-			return;
-		}
-		client = _clients[fd];
 	}
 }
 
@@ -216,12 +260,60 @@ void Server::signalHandler(int signum) {
 
 void Server::sendToClient(int fd, const std::string& message) {
 	std::string msg = message + "\r\n";
-	send(fd, msg.c_str(), msg.length(), 0);
+	Client *c = getClientByFd(fd);
+	c->queueMessage(msg);
+	enablePollout(fd);
 }
+
+void Server::enablePollout(int fd) {
+	for (size_t i = 0; i < _poll_fds.size(); ++i) {
+		if (_poll_fds[i].fd == fd) { 
+			_poll_fds[i].events |= POLLOUT;
+			return;
+		}
+	}
+}
+
+void Server::disablePollout(int fd) {
+	for (size_t i = 0; i < _poll_fds.size(); ++i) {
+		if (_poll_fds[i].fd == fd) { 
+			_poll_fds[i].events &= ~POLLOUT;
+			return;
+		}
+	}
+}
+
+Channel* Server::getChannelByName(const std::string& name) {
+	for (size_t i = 0; i < _channels.size(); i++) {
+		if (_channels[i]->getName() == name)
+			return _channels[i];
+	}
+	return NULL;	
+}
+
+Client*	Server::getClientByNick(const std::string& nick) {
+	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); it++) {
+		if (it->second->getNickname() == nick)
+			return it->second;
+	}
+	return NULL;
+}
+
+Client* Server::getClientByFd(int fd) {
+	std::map<int, Client*>::iterator it = _clients.find(fd);
+	if (it == _clients.end())
+		return NULL;
+	return it->second;
+}
+
+	// sendNumericReply(client, "004", "", _serverName + " 1.0 - iktol");
+	// sendNumericReply(client, "004", client->getNickname(), "ircserv 1.0 - iktol");
+	// sendToClient(client->getFd(), ":" + _serverName + " 004 " + client->getNickname() + " " + _serverName + " 1.0 - iktol");
+
 
 void Server::sendNumericReply(Client* client, const std::string& code, const std::string& params, const std::string& message) {
 	std::string target = client->getNickname().empty() ? "*" : client->getNickname();
-	std::string reply = ":server " + code + " " + target;
+	std::string reply = ":" + _serverName + " " + code + " " + target;
 
 	if (!params.empty())
 		reply += " " + params;
@@ -240,26 +332,26 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		handleNick(client, msg);
 	else if (cmd == "USER")
 		handleUser(client, msg);
+	else if (cmd == "JOIN")
+		handleJoin(client, msg);
 	else if (cmd == "PING")
 		handlePing(client, msg);
+	else if (cmd == "MODE")
+		handleMode(client, msg);
 	// else if (cmd == "INVITE")
 		// handleInvite(client, msg);
 	// else if (cmd == "KICK")
 		// handleKick(client, msg);
-	// else if (cmd == "MODE")
-	// 	handleMode(client, msg);
 	// else if (cmd == "WHOIS")
 	// 	handleWhois(client, msg);
-	// else if (cmd == QUIT)
-		// handleQuit(client, msg);
-	// else if (cmd == "PRIVMSG")
-	// 	handleMsg(client, msg);
-	// else if (cmd == "JOIN")
-	// 	handleJoin(client, msg);
-	// else if (cmd == "PART")
-	// 	handlePart(client, msg);
-	// else if (cmd == "TOPIC")
-	// 	handleTopic(client, msg);
+	else if (cmd == "QUIT")
+		handleQuit(client, msg);
+	else if (cmd == "PRIVMSG")
+		handleMsg(client, msg);
+	else if (cmd == "PART")
+		handlePart(client, msg);
+	else if (cmd == "TOPIC")
+		handleTopic(client, msg);
 	else
 		sendNumericReply(client, "421", cmd, "Unknown command");
 }

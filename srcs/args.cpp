@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 17:40:10 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/10 17:47:41 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/01/31 13:48:32 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ bool validPassword(const char* str, std::string& password) {
 
 bool validArgs(int argc, char **argv, int& port, std::string& password) {
 	if (argc != 3) {
-		std::cerr << "./ircserv <port> <password>" << std::endl;
+		std::cerr << "Usage format: ./ircserv <port> <password>" << std::endl;
 		return false;
 	}
 	if (!validPort(argv[1], port)) {

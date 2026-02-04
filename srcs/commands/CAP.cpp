@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/24 20:37:31 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/25 16:51:59 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/03 19:10:38 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,9 +41,9 @@ void Server::checkRegistration(Client* client) {
 }
 
 void Server::sendWelcome(Client* client) {
-	std::string nick = client->getNickname();
-	sendNumericReply(client, "001", "", "Welcome to the IRC network " + client->getNickname());
-	sendNumericReply(client, "002", "", "Your host is " + client->getHostname() + ", running version 1.0");
+	sendNumericReply(client, "001", "", "Welcome to the IRC network " + client->getPrefix());
+	sendNumericReply(client, "002", "", "Your host is " + _serverName + ", running version 1.0");
 	sendNumericReply(client, "003", "", "This server was created " + _creationTime);
-	sendNumericReply(client, "004", "", "Channel modes iktol");
+	sendNumericReply(client, "004", client->getNickname(), _serverName + " 1.0 - iktol");
+	sendNumericReply(client, "005", "NICKLEN=9 USERLEN=12", "are supported by this server");
 }
