@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/03 18:47:32 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/05 16:48:11 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ private:
 	int						_listenSocket;
 	int						_port;
 	std::string				_password;
+
 	std::map<int, Client*> 	_clients;
 	std::vector<pollfd> 	_poll_fds;
 	std::vector<Channel*>	_channels;
@@ -44,8 +45,13 @@ private:
 	Server(const Server& src);
 	Server& operator=(const Server& other);
 
-	void setServerCreationTime(void); 
+	void createServerSocket(void);
+	void bindSocket(void);
+
+	void setServerCreationTime(void);
 	void handleNewConnection(void);
+	void checkRegistration(Client* client);
+	void sendWelcome(Client* client);
 	void handleClientMessage(int fd);
 	void removeClient(int fd);
 	void handleCommand(Client* client, const Message& msg);
@@ -63,10 +69,8 @@ private:
 	void handlePart(Client* client, const Message& msg);
 	void handleTopic(Client* client, const Message& msg);
 	void destroyChannel(Channel* channel);
-	void checkRegistration(Client* client);
-	void sendWelcome(Client* client);
-	void sendJoinMessage(Client* client, Channel* channel);
 	void handleJoin(Client* client, const Message& msg);
+	void sendJoinMessage(Client* client, Channel* channel);
 	void handleMode(Client* client, const Message& msg);
 	void handleQuit(Client* client, const Message& msg);
 	void shutdownServer(void);

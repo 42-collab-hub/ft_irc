@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:31:03 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/31 14:41:44 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/05 18:07:20 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 		Server server(port, password);
 		std::cout << "Starting IRC server..." << std::endl;
 		server.init();
-		std::cout << "Running IRC server..." << std::endl;
+		std::cout << "Running IRC server on port " << port << std::endl;
 		server.run();
 
 	}

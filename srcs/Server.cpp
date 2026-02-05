@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/03 18:58:21 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/05 18:17:26 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 #include <iostream>
+#include <string>
 #include <cstring> // memset
 #include <sys/socket.h> // socket() setsockopt()
 #include <netinet/in.h> // struct sockaddr_in
@@ -40,33 +41,47 @@ Server::Server(int port, const std::string& password) {
 
 void Server::setServerCreationTime() {
 	time_t timestamp;
-    struct tm datetime;
-    char output[50];
-    
-    time(&timestamp);
-    datetime = *localtime(&timestamp);
-    std::strftime(output, sizeof(output), "%a %b %d %Y %H:%M:%S", &datetime);
-    _creationTime = output;
+	struct tm datetime;
+	char output[50];
+
+	time(&timestamp);
+	datetime = *localtime(&timestamp);
+	std::strftime(output, sizeof(output), "%a %b %d %Y %H:%M:%S", &datetime);
+	_creationTime = output;
 }
 
 Server::~Server() {
 	if (_listenSocket >= 0)
 		close(_listenSocket);
 
-    for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
-        close(it->first);
-        delete it->second;
-    }
-    for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it) {
-        delete *it;
-    }
-	
-    _clients.clear();
+	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+		close(it->first);
+		delete it->second;
+	}
+
+	for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
+		delete *it;
+
+	_clients.clear();
 	_channels.clear();
 	_poll_fds.clear();
 }
 
 void Server::init() {
+	createServerSocket();
+	bindSocket();
+
+	if (listen(_listenSocket, 10) < 0) { // set listening socket to passive mode - waits for new connections
+		close(_listenSocket);
+		throw std::runtime_error(std::string("Failed to listen: ") + strerror(errno));
+	}
+
+	pollfd listenPollFd = {_listenSocket, POLLIN, 0};
+	_poll_fds.push_back(listenPollFd);
+}
+
+
+void Server::createServerSocket(void) {
 	_listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_listenSocket < 0)
 		throw std::runtime_error(std::string("Failed to create socket: ") + strerror(errno));
@@ -78,7 +93,9 @@ void Server::init() {
 		close(_listenSocket);
 		throw std::runtime_error(std::string("Failed to set socket options: ") + strerror(errno));
 	}
+}
 
+void Server::bindSocket(void) {
 	struct sockaddr_in address; // structure describing an Internet socket address
 	memset(&address, 0, sizeof(address));
 	address.sin_family = AF_INET; // IPv4
@@ -91,22 +108,14 @@ void Server::init() {
 	}
 	// address is a pointer to a struct sockaddr that contains the IP address and port number to bind the socket
 	// sizeof(address) is size of the addr structure
-
-	if (listen(_listenSocket, 10) < 0) { // set listening socket to passive mode - waits for new connections
-		close(_listenSocket);
-		throw std::runtime_error(std::string("Failed to listen: ") + strerror(errno));
-	}
-	
-	pollfd listenPollFd = {_listenSocket, POLLIN, 0};
-	_poll_fds.push_back(listenPollFd);
 }
 
 void Server::run() {
-    registerSignalHandlers(); // Register signal handlers
+	registerSignalHandlers();
 
 	while (_running) {
 		int ready = poll(_poll_fds.data(), _poll_fds.size(), -1);
-		if (ready < 0) // poll error
+		if (ready < 0)
 			break;
 
 		for (size_t i = 0; i < _poll_fds.size(); i++) { // check each monitored fd at a time
@@ -142,12 +151,13 @@ void Server::run() {
 	shutdownServer();
 }
 
-void Server::shutdownServer() { // send shutdown message to clients
+void Server::shutdownServer() {
 	std::string message = "Shutting down IRC server...";
 	std::cout << "\n" + message << std::endl;
 	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
 		int fd = it->first;
 		sendToClient(fd, "ERROR :" + message + "\r\n");
+		it->second->flushMessage();
 	}
 }
 
@@ -160,7 +170,7 @@ void Server::handleNewConnection(void) {
 		std::cerr << "Error: Failed to accept connection: " << strerror(errno) << std::endl;
 		return ;
 	}
-	fcntl(clientFd, F_SETFL, O_NONBLOCK); // set new Client socket to non-blocking
+	fcntl(clientFd, F_SETFL, O_NONBLOCK);
 	std::string hostname = inet_ntoa(address.sin_addr);
 	Client* newClient = new Client(clientFd, hostname);
 	_clients[clientFd] = newClient;
@@ -168,8 +178,7 @@ void Server::handleNewConnection(void) {
 	_poll_fds.push_back(clientPollFd);
 }
 
-void Server::destroyChannel(Channel* channel)
-{
+void Server::destroyChannel(Channel* channel) {
 	if (!channel)
 		return ;
 
@@ -305,11 +314,6 @@ Client* Server::getClientByFd(int fd) {
 		return NULL;
 	return it->second;
 }
-
-	// sendNumericReply(client, "004", "", _serverName + " 1.0 - iktol");
-	// sendNumericReply(client, "004", client->getNickname(), "ircserv 1.0 - iktol");
-	// sendToClient(client->getFd(), ":" + _serverName + " 004 " + client->getNickname() + " " + _serverName + " 1.0 - iktol");
-
 
 void Server::sendNumericReply(Client* client, const std::string& code, const std::string& params, const std::string& message) {
 	std::string target = client->getNickname().empty() ? "*" : client->getNickname();

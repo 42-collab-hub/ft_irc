@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/24 20:40:43 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/03 18:47:15 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/05 18:04:15 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,13 +16,13 @@
 #include <cctype> // isalnum, isalpha
 #include <string>
 
-static bool isValidNickname(const std::string& str) { // validate nickname character set
+static bool isValidNickname(const std::string& str) {
 	if (str.empty() || str.length() > NICKLEN)
 		return false;
 
 	std::string set = "[]{}\\|`_^";
 
-	if (!std::isalpha(str[0]) && set.find(str[0]) == std::string::npos) // first character
+	if (!std::isalpha(str[0]) && set.find(str[0]) == std::string::npos)
 		return false;
 
 	for (size_t i = 1; i < str.length(); i++) {
@@ -42,7 +42,7 @@ static std::string normalizeNickname(const std::string& original) {
 
 bool Server::isTakenNickname(Client* client, const std::string& newNickname) {
 	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
-		if (it->second == client) // skip itself
+		if (it->second == client)
 			continue;
 		std::string otherNickname = it->second->getNickname();
 		if (normalizeNickname(otherNickname) == normalizeNickname(newNickname)) {
@@ -53,9 +53,9 @@ bool Server::isTakenNickname(Client* client, const std::string& newNickname) {
 }
 
 void Server::handleNick(Client* client, const Message& msg) {
-	if (!_password.empty() && !client->isAuthenticated()) // NICK + USER only after PASS
+	if (!_password.empty() && !client->isAuthenticated())
 		return;
-	if (msg._params.empty() || msg._params[0].empty()) { // empty parameter ERR_NONICKNAMEGIVEN (431)
+	if (msg._params.empty() || msg._params[0].empty()) {
 		sendNumericReply(client, "431", "", "No nickname given");
 		return;
 	}
@@ -65,7 +65,7 @@ void Server::handleNick(Client* client, const Message& msg) {
 	if (!currentNick.empty() && (normalizeNickname(currentNick) == normalizeNickname(newNickname)))
 		return;
 
-	if (!isValidNickname(newNickname)) { // invalid character set ERR_ERRONEUSNICKNAME (432)
+	if (!isValidNickname(newNickname)) {
 		sendNumericReply(client, "432", newNickname, "Erroneus nickname");
 		return;
 	}

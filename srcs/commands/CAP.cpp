@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/24 20:37:31 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/03 19:10:38 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/05 18:02:51 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,17 +27,21 @@ void Server::handleCap(Client* client, const Message& msg) {
 }
 
 void Server::checkRegistration(Client* client) {
-	if (client->isRegistered()) // already registered
+	if (client->isRegistered())
 		return;
-	if (!_password.empty() && !client->isAuthenticated()) // PASS is not done
+	if (!_password.empty() && !client->isAuthenticated()) {
+		sendToClient(client->getFd(), "ERROR :Password required");
+		client->flushMessage();
+		removeClient(client->getFd());
 		return;
-	if (client->getNickname().empty()) // NICK is not done
+	}
+	if (client->getNickname().empty())
 		return;
-	if (client->getUsername().empty()) // USER is not done
+	if (client->getUsername().empty())
 		return;
 
-	client->setRegister(true); // Only after both USER & NICK
-	sendWelcome(client); // send welcome messages
+	client->setRegister(true);
+	sendWelcome(client);
 }
 
 void Server::sendWelcome(Client* client) {
