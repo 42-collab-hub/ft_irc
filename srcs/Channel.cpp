@@ -6,18 +6,18 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/17 21:14:56 by gholloco          #+#    #+#             */
-/*   Updated: 2026/02/01 20:43:26 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/06 13:05:21 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
 #include "Client.hpp"
 #include "Server.hpp"
+#include <string>
+#include <ctime>
 
-Channel::Channel(std::string &name) : _name(name) {}
+Channel::Channel(std::string &name) : _name(name), _password(""), _topic(""), _topicSetter(""), _topicTime(0) {}
 Channel::~Channel(){}
-
-// getters
 
 bool Channel::isInviteOnly(void) const
 {
@@ -39,10 +39,10 @@ bool Channel::hasUserLimit(void) const
 	return this->_modes.count('l');
 }
 
-int Channel::getId(void) const
-{
-	return this->_id;
-}
+// int Channel::getId(void) const
+// {
+// 	return this->_id;
+// }
 
 size_t Channel::getMemberCount(void) const
 {
@@ -84,6 +84,15 @@ std::string Channel::getMemberList(void)
 	return list;
 }
 
+const std::string& Channel::getTopicSetter(void) const {
+	return this->_topicSetter;
+}
+
+time_t Channel::getTopicTime(void) const {
+	return this->_topicTime;
+}
+
+
 // setters
 void Channel::setMode(char m, bool b)
 {
@@ -117,9 +126,12 @@ void Channel::unsetUserLimit(void)
 	this->_userLimit = 0;
 }
 
-void Channel::setTopic(const std::string& topic)
+void Channel::setTopic(const std::string& topic, const std::string& setter)
 {
 	this->_topic = topic;
+	this->_topicSetter = setter;
+	this->_topicTime = time(NULL);
+	
 }
 
 // members
@@ -180,6 +192,6 @@ void Channel::broadcast(Server& srv, const std::string& msg, Client *c)
 	for (std::set<Client*>::iterator it = this->_members.begin(); it != this->_members.end(); ++it)
 	{
 		if (*it != c)
-			srv.queueToClient(*it, msg + "\r\n"); 
+			srv.queueToClient(*it, msg); 
 	}
 }

@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/01 21:19:28 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/06 13:36:29 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -306,7 +306,8 @@ void Server::sendNumericReply(Client* client, const std::string& code, const std
 
 	if (!params.empty())
 		reply += " " + params;
-	reply += " :" + message;
+	if (!message.empty())
+		reply += " :" + message;
 	sendToClient(client->getFd(), reply);
 }
 
