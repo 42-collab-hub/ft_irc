@@ -8,17 +8,19 @@ SRC	= 		main.cpp \
 			Client.cpp \
 			Message.cpp \
 			Channel.cpp \
+			commands/CAP.cpp \
+			commands/INVITE.cpp \
+			commands/JOIN.cpp \
+			commands/KICK.cpp \
+			commands/MODE.cpp \
+			commands/NICK.cpp \
+			commands/PART.cpp \
 			commands/PASS.cpp \
 			commands/PING.cpp \
-			commands/USER.cpp \
-			commands/NICK.cpp \
-			commands/CAP.cpp \
 			commands/PRIVMSG.cpp \
-			commands/PART.cpp \
+			commands/QUIT.cpp \
 			commands/TOPIC.cpp \
-			commands/JOIN.cpp \
-			commands/MODE.cpp \
-			commands/QUIT.cpp
+			commands/USER.cpp
 
 OBJDIR = 	obj
 OBJ = 		$(SRC:%.cpp=$(OBJDIR)/%.o)

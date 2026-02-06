@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/05 16:48:11 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/06 16:51:21 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,6 +68,9 @@ private:
 	void sendToChannel(Client* sender, const std::string& target, const std::string& message);
 	void handlePart(Client* client, const Message& msg);
 	void handleTopic(Client* client, const Message& msg);
+	void sendTopicInfo(Client* client, Channel* channel);
+	void handleInvite(Client* client, const Message& msg);
+	void handleKick(Client* client, const Message& msg);
 	void destroyChannel(Channel* channel);
 	void handleJoin(Client* client, const Message& msg);
 	void sendJoinMessage(Client* client, Channel* channel);
@@ -81,7 +84,8 @@ private:
 
 	Client* 	getClientByFd(int fd);
 	Client*		getClientByNick(const std::string& nick);
-	Channel*	getChannelByName(const std::string& name);
+	Channel*	getChannelByName(const std::string& name); // double
+	Client* 	getClientByName(std::string& name);
 	Channel* 	getChannel(const std::string& name);
 
 	void 		enablePollout(int fd);

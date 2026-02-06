@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/05 18:17:26 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/06 16:55:10 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -315,13 +315,24 @@ Client* Server::getClientByFd(int fd) {
 	return it->second;
 }
 
+Client* Server::getClientByName(std::string& name)
+{
+	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		if ((*it).second->getNickname() == name)
+			return (*it).second;
+	}
+	return NULL;
+}
+
 void Server::sendNumericReply(Client* client, const std::string& code, const std::string& params, const std::string& message) {
 	std::string target = client->getNickname().empty() ? "*" : client->getNickname();
 	std::string reply = ":" + _serverName + " " + code + " " + target;
 
 	if (!params.empty())
 		reply += " " + params;
-	reply += " :" + message;
+	if (!message.empty())
+		reply += " :" + message;
 	sendToClient(client->getFd(), reply);
 }
 
@@ -340,12 +351,12 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		handleJoin(client, msg);
 	else if (cmd == "PING")
 		handlePing(client, msg);
-	else if (cmd == "MODE")
-		handleMode(client, msg);
-	// else if (cmd == "INVITE")
-		// handleInvite(client, msg);
-	// else if (cmd == "KICK")
-		// handleKick(client, msg);
+	else if (cmd == "INVITE")
+		handleInvite(client, msg);
+	else if (cmd == "KICK")
+		handleKick(client, msg);
+	// else if (cmd == "MODE")
+	// 	handleMode(client, msg);
 	// else if (cmd == "WHOIS")
 	// 	handleWhois(client, msg);
 	else if (cmd == "QUIT")
