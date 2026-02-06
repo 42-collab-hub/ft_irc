@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/23 13:19:11 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/31 04:40:01 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/02/06 16:41:58 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #include "Server.hpp"
 #include "Message.hpp"
 #include "Channel.hpp"
-#include "Client.hpp" // ADDED
+#include "Client.hpp"
 
 Channel* Server::getChannel(const std::string &name) {
 	for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++) {
@@ -37,26 +37,22 @@ static bool validChannelName(const std::string &name) {
 
 void Server::sendJoinMessage(Client* client, Channel* channel) {
 	std::string channelName = channel->getName();
-	channel->broadcast(*this, ":" + client->getPrefix() + " JOIN " + channelName, NULL);
-	if (channel->getTopic().empty()) // channel doesn't have a topic
-		sendNumericReply(client, "331", channelName, "No topic is set");
-	else { // channel has topic
-		sendNumericReply(client, "332", channelName, channel->getTopic()); // RPL_TOPIC 332 - sent to client to inform them of the current topic
-		// TODO: RPL_TOPICWHOTIME 333 - sent to client to inform them who set the topic and when they set it
-	}
+	std::string joinMessage = ":" + client->getPrefix() + " JOIN " + channelName;
+	channel->broadcast(*this, joinMessage, NULL);
+	sendTopicInfo(client, channel);
 	sendNumericReply(client, "353", "= " + channelName, channel->getMemberList());
 	sendNumericReply(client, "366", channelName, "End of /NAMES list");
 }
 
 void Server::handleJoin(Client* client, const Message& msg) {
-	if (!client->isRegistered()) { // ADDED
+	if (!client->isRegistered()) {
 		sendNumericReply(client, "451", "", "You have not registered");
 		return;
 	}
 	
 	// TODO: verify that client hasn't reached channel limit and can join new channels
 
-	if (msg._params.size() < 1) { // ADDED
+	if (msg._params.size() < 1) {
 		sendNumericReply(client, "461", msg._command, "Not enough parameters");
 		return ;
 	}

@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/29 20:18:13 by gholloco          #+#    #+#             */
-/*   Updated: 2026/02/06 13:46:09 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/06 16:34:10 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,12 +18,18 @@
 #include <ctime>
 
 void Server::sendTopicInfo(Client* client, Channel* channel) {
-	sendNumericReply(client, "332", channel->getName(), channel->getTopic());
-	if (!channel->getTopicSetter().empty()) {
-		std::ostringstream oss;
-		oss << channel->getTopicTime();
-		std::string message = channel->getName() + " " + channel->getTopicSetter() + " " + oss.str();
-		sendNumericReply(client, "333", message, "");
+	std::string channelName = channel->getName();
+
+	if (channel->getTopic().empty() && channel->getTopicSetter().empty())
+		sendNumericReply(client, "331", channelName, "No topic is set");
+	else {
+		sendNumericReply(client, "332", channel->getName(), channel->getTopic());
+		if (!channel->getTopicSetter().empty()) {
+			std::ostringstream oss;
+			oss << channel->getTopicTime();
+			std::string params = channel->getName() + " " + channel->getTopicSetter() + " " + oss.str();
+			sendNumericReply(client, "333", params, "");
+		}		
 	}
 }
 
@@ -52,10 +58,7 @@ void Server::handleTopic(Client *client, const Message& msg) {
 
 	// view topic
 	if (msg._params.size() == 1) {
-		if (chan->getTopic().empty() && chan->getTopicSetter().empty())
-			sendNumericReply(client, "331", channelName, "No topic is set");
-		else
-			sendTopicInfo(client, chan);
+		sendTopicInfo(client, chan);
 		return ;
 	}
 
