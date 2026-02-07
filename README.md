@@ -34,7 +34,7 @@ make re      # Rebuild everything
 # Example: ./ircserv 6667 mypassword
 ```
 ### Connecting to server
-You can connect using an IRC client (out reference client is **irssi**) or netcat:
+You can connect using an IRC client (our reference client is **irssi**) or netcat:
 ```
 nc -C localhost 6667
 ```
