@@ -6,16 +6,25 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/17 21:14:56 by gholloco          #+#    #+#             */
-/*   Updated: 2026/02/01 20:43:26 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/06 18:19:16 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
 #include "Client.hpp"
 #include "Server.hpp"
+#include <string>
+#include <sstream>
 
 Channel::Channel(std::string &name) : _name(name) {}
 Channel::~Channel(){}
+
+static std::string int_to_string(int n)
+{
+	std::ostringstream oss;
+	oss << n;
+	return oss.str();
+}
 
 // getters
 
@@ -67,6 +76,28 @@ const std::string& Channel::getName(void) const
 const std::string& Channel::getPassword(void) const
 {
 	return this->_password;
+}
+
+std::string Channel::getModes(void)
+{
+	std::string modes = "+";
+	std::string params;
+
+	if (this->_modes.count('i'))
+		modes += 'i';
+	if (this->_modes.count('t'))
+		modes += 't';
+	if (this->_modes.count('k'))
+	{
+		modes += 'k';
+		params += " " + _password;
+	}
+	if (this->_modes.count('l'))
+	{
+		modes += 'l';
+		params += " " + int_to_string(_userLimit);
+	}
+	return modes + params;
 }
 
 std::string Channel::getMemberList(void) 

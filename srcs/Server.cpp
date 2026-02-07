@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/01 21:19:28 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/06 21:09:17 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -329,8 +329,8 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		handleInvite(client, msg);
 	else if (cmd == "KICK")
 		handleKick(client, msg);
-	// else if (cmd == "MODE")
-	// 	handleMode(client, msg);
+	else if (cmd == "MODE")
+		handleMode(client, msg);
 	// else if (cmd == "WHOIS")
 	// 	handleWhois(client, msg);
 	// else if (cmd == QUIT)

@@ -6,7 +6,7 @@
 /*   By: gholloco <gwendal.hollocou@orange.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/17 21:11:16 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/29 19:55:01 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/02/05 21:49:54 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ public:
 	const std::string&		getTopic(void) const;
 	const std::string&		getName(void) const;
 	const std::string&		getPassword(void) const;
+	std::string 			getModes(void);
 
 	// setters
 	void					setMode(char m, bool b);

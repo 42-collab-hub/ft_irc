@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/23 13:19:11 by gholloco          #+#    #+#             */
-/*   Updated: 2026/01/31 04:40:01 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/02/06 22:12:15 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,8 +72,9 @@ void Server::handleJoin(Client* client, const Message& msg) {
 	Channel* chan = getChannel(channelName);
 
 	if (chan) {
+		// TODO: I think this numeric reply is only for INVITE, unsure
 		if (chan->isMember(client)) {
-			sendNumericReply(client, "443", chan->getName(), client->getNickname() + " is already on channel");
+			sendNumericReply(client, "443", client->getNickname(), chan->getName() + " is already on channel");
 			return;
 		}
 		if (chan->isInviteOnly() && !chan->isInvited(client)) {
@@ -81,11 +82,11 @@ void Server::handleJoin(Client* client, const Message& msg) {
 			return;
 		}
 		if (chan->hasKey() && channelKey != chan->getPassword()) {
-			sendNumericReply(client, "475", "", "Cannot join channel (+k)");
+			sendNumericReply(client, "475", chan->getName(), "Cannot join channel (+k)");
 			return;
 		}
 		if (chan->hasUserLimit() && chan->getUserLimit() == chan->getMemberCount()) {
-			sendNumericReply(client, "471", "", "Cannot join channel (+l)");
+			sendNumericReply(client, "471", chan->getName(), "Cannot join channel (+l)");
 			return;
 		}
 		chan->addMember(client);
