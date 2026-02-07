@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/17 21:14:56 by gholloco          #+#    #+#             */
-/*   Updated: 2026/02/06 16:51:52 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 12:52:17 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,20 @@
 #include "Client.hpp"
 #include "Server.hpp"
 #include <string>
+#include <sstream>
 #include <ctime>
 
 Channel::Channel(std::string &name) : _name(name), _password(""), _topic(""), _topicSetter(""), _topicTime(0) {}
 Channel::~Channel(){}
+
+static std::string int_to_string(int n)
+{
+	std::ostringstream oss;
+	oss << n;
+	return oss.str();
+}
+
+// getters
 
 bool Channel::isInviteOnly(void) const
 {
@@ -69,17 +79,38 @@ const std::string& Channel::getPassword(void) const
 	return this->_password;
 }
 
+std::string Channel::getModes(void)
+{
+	std::string modes = "+";
+	std::string params;
+
+	if (this->_modes.count('i'))
+		modes += 'i';
+	if (this->_modes.count('t'))
+		modes += 't';
+	if (this->_modes.count('k'))
+	{
+		modes += 'k';
+		params += " " + _password;
+	}
+	if (this->_modes.count('l'))
+	{
+		modes += 'l';
+		params += " " + int_to_string(_userLimit);
+	}
+	return modes + params;
+}
+
 std::string Channel::getMemberList(void) 
 {
 	std::string list;
 	for (std::set<Client*>::iterator it = this->_members.begin(); it != this->_members.end(); ++it)
 	{
 		if (!list.empty())
-			list += " "; // FIX: add space before -> no trailing space in the returned member list
+			list += " ";
 		if (this->_operators.count(*it))
 			list += "@";
 		list += (*it)->getNickname();
-		// list += " ";
 	}
 	return list;
 }

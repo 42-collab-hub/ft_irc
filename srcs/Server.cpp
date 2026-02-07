@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/06 16:55:10 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 12:51:22 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -343,30 +343,30 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		handlePass(client, msg);
 	else if (cmd == "CAP")
 		handleCap(client, msg);
-	else if (cmd == "NICK")
-		handleNick(client, msg);
-	else if (cmd == "USER")
-		handleUser(client, msg);
-	else if (cmd == "JOIN")
-		handleJoin(client, msg);
-	else if (cmd == "PING")
-		handlePing(client, msg);
 	else if (cmd == "INVITE")
 		handleInvite(client, msg);
+	else if (cmd == "JOIN")
+		handleJoin(client, msg);
 	else if (cmd == "KICK")
 		handleKick(client, msg);
-	// else if (cmd == "MODE")
-	// 	handleMode(client, msg);
-	// else if (cmd == "WHOIS")
-	// 	handleWhois(client, msg);
-	else if (cmd == "QUIT")
-		handleQuit(client, msg);
-	else if (cmd == "PRIVMSG")
-		handleMsg(client, msg);
+	else if (cmd == "MODE")
+		handleMode(client, msg);
+	else if (cmd == "NICK")
+		handleNick(client, msg);
 	else if (cmd == "PART")
 		handlePart(client, msg);
+	else if (cmd == "PING")
+		handlePing(client, msg);
+	else if (cmd == "PRIVMSG")
+		handleMsg(client, msg);
+	else if (cmd == "QUIT")
+		handleQuit(client, msg);
 	else if (cmd == "TOPIC")
 		handleTopic(client, msg);
+	else if (cmd == "USER")
+		handleUser(client, msg);
+	else if (cmd == "WHOIS")
+		sendNumericReply(client, "318", client->getNickname(), "End of /WHOIS list");
 	else
 		sendNumericReply(client, "421", cmd, "Unknown command");
 }

@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/06 16:51:21 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 12:56:52 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,11 +71,17 @@ private:
 	void sendTopicInfo(Client* client, Channel* channel);
 	void handleInvite(Client* client, const Message& msg);
 	void handleKick(Client* client, const Message& msg);
+	void handleMode(Client* client, const Message& msg);
+	void viewChannelModes(Channel* channel, Client* client);
+	void handleModeK(bool adding, Channel* channel, std::string& appliedModes, std::string& appliedParams, char& lastSign, std::string param);
+	void handleModeL(bool adding, Channel* channel, std::string& appliedModes, std::string& appliedParams, char& lastSign, std::string param, Client* client);
+	void handleModeO(bool adding, Channel* channel, std::string& appliedModes, std::string& appliedParams, char& lastSign, std::string param, Client* client);
+	void handleQuit(Client* client, const Message& msg);
+	void setChannelModes(Channel* channel, Client* client, const Message& msg);
 	void destroyChannel(Channel* channel);
 	void handleJoin(Client* client, const Message& msg);
 	void sendJoinMessage(Client* client, Channel* channel);
-	void handleMode(Client* client, const Message& msg);
-	void handleQuit(Client* client, const Message& msg);
+
 	void shutdownServer(void);
 	
 	// signal handling

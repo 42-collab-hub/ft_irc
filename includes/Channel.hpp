@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/17 21:11:16 by gholloco          #+#    #+#             */
-/*   Updated: 2026/02/06 13:50:27 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 04:32:53 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ public:
 	const std::string&		getTopic(void) const;
 	const std::string&		getName(void) const;
 	const std::string&		getPassword(void) const;
+	std::string 			getModes(void);
 	const std::string&		getTopicSetter(void) const;
 	time_t					getTopicTime(void) const;
 

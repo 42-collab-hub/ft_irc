@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/23 13:19:11 by gholloco          #+#    #+#             */
-/*   Updated: 2026/02/06 16:56:13 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 12:55:20 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,8 +49,6 @@ void Server::handleJoin(Client* client, const Message& msg) {
 		sendNumericReply(client, "451", "", "You have not registered");
 		return;
 	}
-	
-	// TODO: verify that client hasn't reached channel limit and can join new channels
 
 	if (msg._params.size() < 1) {
 		sendNumericReply(client, "461", msg._command, "Not enough parameters");
@@ -68,20 +66,21 @@ void Server::handleJoin(Client* client, const Message& msg) {
 	Channel* chan = getChannel(channelName);
 
 	if (chan) {
-		if (chan->isMember(client)) {
-			sendNumericReply(client, "443", chan->getName(), client->getNickname() + " is already on channel");
-			return;
-		}
+		// TODO: I think this numeric reply is only for INVITE, unsure
+		// if (chan->isMember(client)) {
+		// 	sendNumericReply(client, "443", client->getNickname(), chan->getName() + " is already on channel");
+		// 	return;
+		// }
 		if (chan->isInviteOnly() && !chan->isInvited(client)) {
 			sendNumericReply(client, "473", chan->getName(), "Cannot join channel (+i)");
 			return;
 		}
 		if (chan->hasKey() && channelKey != chan->getPassword()) {
-			sendNumericReply(client, "475", "", "Cannot join channel (+k)");
+			sendNumericReply(client, "475", chan->getName(), "Cannot join channel (+k)");
 			return;
 		}
 		if (chan->hasUserLimit() && chan->getUserLimit() == chan->getMemberCount()) {
-			sendNumericReply(client, "471", "", "Cannot join channel (+l)");
+			sendNumericReply(client, "471", chan->getName(), "Cannot join channel (+l)");
 			return;
 		}
 		chan->addMember(client);
