@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/28 18:51:34 by gholloco          #+#    #+#             */
-/*   Updated: 2026/02/06 16:21:53 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 14:00:28 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,4 +44,21 @@ void Server::handlePart(Client* client, const Message& msg) {
 	chan->removeMember(client);
 	if (chan->getMemberCount() == 0)
 		destroyChannel(chan);
+}
+
+void Server::destroyChannel(Channel* channel) {
+	if (!channel)
+		return ;
+
+	std::string channelName = channel->getName();
+	for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
+	{
+		if (*it == channel)
+		{
+			delete *it;
+			_channels.erase(it);
+			std::cout << "Successfully removed empty channel " << channelName << std::endl;
+			return ;
+		}
+	}
 }

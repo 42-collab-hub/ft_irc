@@ -6,13 +6,14 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/24 20:37:31 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/05 18:02:51 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 13:38:32 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 #include "Client.hpp"
 #include "Message.hpp"
+#include <string>
 
 void Server::handleCap(Client* client, const Message& msg) {
 	if (msg._params.empty())

@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/02 17:39:57 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/02 19:04:55 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 14:21:07 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,13 +22,12 @@ void Server::handleQuit(Client* client, const Message& msg) {
 		reason = msg._params[0];
 	std::string message = ":" + client->getPrefix() + " QUIT :" + reason;
 
-	// send message to all channel the client was member of
 	for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++) {
 		if ((*it)->isMember(client)) {
 			(*it)->broadcast(*this, message, client);
 			(*it)->removeMember(client);
 		}
 	}
-	sendToClient(client->getFd(), "ERROR :Closing Link: " + reason); // send message to Client
-	removeClient(client->getFd()); // close connection to server
+	sendToClient(client->getFd(), "ERROR :Closing Link: " + reason);
+	removeClient(client->getFd());
 }

@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 13:32:19 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/07 12:55:50 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 13:17:29 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ void Server::handleModeK(bool adding, Channel* channel, std::string& appliedMode
 		channel->setKey(param);
 	else
 		channel->unsetKey();
-
+	
 	appendAppliedMode(appliedModes, lastSign, adding, 'k');
 	if (adding)
 		appliedParams += " " + param;

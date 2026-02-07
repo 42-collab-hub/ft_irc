@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 10:45:13 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/30 20:40:13 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 13:59:02 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,26 +19,23 @@ void Client::appendToBuffer(const char* data, size_t len) {
 	_recvBuffer.append(data, len);
 }
 
-void Client::queueMessage(const std::string& msg)
-{
+void Client::queueMessage(const std::string& msg) {
 	_sendBuffer += msg;
 }
 
-void Client::flushMessage(void)
-{
+void Client::flushMessage(void) {
 	if (_sendBuffer.empty())
 		return ;
 
 	ssize_t i = send(_fd, _sendBuffer.c_str(), _sendBuffer.size(), 0);
 
-	if (i <= 0) // message not sent so we don't erase it yet, retry on next POLLOUT
+	if (i <= 0)
 		return ; 
 
 	_sendBuffer.erase(0, i);
 }
 
-bool Client::hasQueuedMessage() const
-{
+bool Client::hasQueuedMessage() const {
 	return !_sendBuffer.empty();
 }
 
@@ -50,22 +47,14 @@ std::string Client::extractMessage() {
 	size_t pos = _recvBuffer.find("\r\n");
 	if (pos == std::string::npos)
 		return "";
-	std::string message = _recvBuffer.substr(0, pos); // extract message without \r\n
-	_recvBuffer.erase(0, pos + 2); // remove from buffer including \r\n
+	std::string message = _recvBuffer.substr(0, pos);
+	_recvBuffer.erase(0, pos + 2);
 	return message;
 }
 
-std::string Client::getPrefix() const
-{
+std::string Client::getPrefix() const {
 	return _nickname + "!" + _username + "@" + _hostname;
 }
-
-void Client::setAuthenticated(bool status) { _autheticated = status; }
-void Client::setRegister(bool status) { _registered = status; }
-void Client::setNickname(const std::string& str) { _nickname = str; }
-void Client::setUsername(const std::string& str) { _username = str; }
-void Client::setRealname(const std::string& str) { _realname = str; }
-void Client::setHostname(const std::string& str) { _hostname = str; }
 
 bool Client::isAuthenticated(void) const { return _autheticated; }
 bool Client::isRegistered(void) const { return _registered; }
@@ -74,3 +63,10 @@ const std::string& Client::getUsername(void) const { return _username; }
 const std::string& Client::getRealname(void) const { return _realname; }
 const std::string& Client::getHostname(void) const { return _hostname; }
 int Client::getFd(void) const { return this->_fd; }
+
+void Client::setAuthenticated(bool status) { _autheticated = status; }
+void Client::setRegister(bool status) { _registered = status; }
+void Client::setNickname(const std::string& str) { _nickname = str; }
+void Client::setUsername(const std::string& str) { _username = str; }
+void Client::setRealname(const std::string& str) { _realname = str; }
+void Client::setHostname(const std::string& str) { _hostname = str; }

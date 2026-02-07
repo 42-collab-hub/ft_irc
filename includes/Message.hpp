@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/11 08:32:00 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/16 18:30:11 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 14:30:06 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,6 @@
 
 #include <string>
 #include <vector>
-
-// CRLF="\r\n"
-
-// message format & numeric replies
 
 class Message {
 public:

@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/29 20:18:13 by gholloco          #+#    #+#             */
-/*   Updated: 2026/02/06 16:34:10 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 14:21:31 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,16 +56,12 @@ void Server::handleTopic(Client *client, const Message& msg) {
 		return ;
 	}
 
-	// view topic
 	if (msg._params.size() == 1) {
 		sendTopicInfo(client, chan);
 		return ;
 	}
 
-	// set topic
 	std::string newTopic = msg._params[1];
-
-	// TODO: test after MODE is implemented - check permissions
 	if (chan->isTopicRestricted() && !chan->isOperator(client)) {
 		sendNumericReply(client, "482", channelName, "You're not channel operator");
         return ;

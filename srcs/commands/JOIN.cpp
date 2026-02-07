@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/23 13:19:11 by gholloco          #+#    #+#             */
-/*   Updated: 2026/02/07 12:55:20 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 14:07:23 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,11 +66,9 @@ void Server::handleJoin(Client* client, const Message& msg) {
 	Channel* chan = getChannel(channelName);
 
 	if (chan) {
-		// TODO: I think this numeric reply is only for INVITE, unsure
-		// if (chan->isMember(client)) {
-		// 	sendNumericReply(client, "443", client->getNickname(), chan->getName() + " is already on channel");
-		// 	return;
-		// }
+		if (chan->isMember(client))
+			return;
+
 		if (chan->isInviteOnly() && !chan->isInvited(client)) {
 			sendNumericReply(client, "473", chan->getName(), "Cannot join channel (+i)");
 			return;

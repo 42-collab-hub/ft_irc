@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/07 12:51:22 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 14:28:18 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,13 +16,13 @@
 #include "Channel.hpp"
 #include <iostream>
 #include <string>
-#include <cstring> // memset
-#include <sys/socket.h> // socket() setsockopt()
-#include <netinet/in.h> // struct sockaddr_in
-#include <unistd.h> // close
-#include <cerrno> // errno
-#include <poll.h> // poll()
-#include <signal.h> // signal()
+#include <cstring>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <cerrno>
+#include <poll.h>
+#include <signal.h>
 #include <ctime>
 #include <fcntl.h>
 #include <exception>
@@ -71,7 +71,7 @@ void Server::init() {
 	createServerSocket();
 	bindSocket();
 
-	if (listen(_listenSocket, 10) < 0) { // set listening socket to passive mode - waits for new connections
+	if (listen(_listenSocket, 10) < 0) {
 		close(_listenSocket);
 		throw std::runtime_error(std::string("Failed to listen: ") + strerror(errno));
 	}
@@ -80,13 +80,12 @@ void Server::init() {
 	_poll_fds.push_back(listenPollFd);
 }
 
-
 void Server::createServerSocket(void) {
 	_listenSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_listenSocket < 0)
 		throw std::runtime_error(std::string("Failed to create socket: ") + strerror(errno));
 
-	fcntl(_listenSocket, F_SETFL, O_NONBLOCK); // set server socket to non-blocking mode
+	fcntl(_listenSocket, F_SETFL, O_NONBLOCK);
 
 	int opt = 1;
 	if (setsockopt(_listenSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
@@ -96,18 +95,16 @@ void Server::createServerSocket(void) {
 }
 
 void Server::bindSocket(void) {
-	struct sockaddr_in address; // structure describing an Internet socket address
+	struct sockaddr_in address;
 	memset(&address, 0, sizeof(address));
-	address.sin_family = AF_INET; // IPv4
-	address.sin_addr.s_addr = INADDR_ANY; // 0.0.0.0 listen on all interfaces
-	address.sin_port = htons(_port); // convert from host byte order to network byte order
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_port = htons(_port);
 
-	if (bind(_listenSocket, (sockaddr*)&address, sizeof(address)) < 0) { // bind socket
+	if (bind(_listenSocket, (sockaddr*)&address, sizeof(address)) < 0) {
 		close(_listenSocket);
 		throw std::runtime_error(std::string("Failed to bind socket: ") + strerror(errno));
 	}
-	// address is a pointer to a struct sockaddr that contains the IP address and port number to bind the socket
-	// sizeof(address) is size of the addr structure
 }
 
 void Server::run() {
@@ -118,29 +115,29 @@ void Server::run() {
 		if (ready < 0)
 			break;
 
-		for (size_t i = 0; i < _poll_fds.size(); i++) { // check each monitored fd at a time
+		for (size_t i = 0; i < _poll_fds.size(); i++) {
 			int fd = _poll_fds[i].fd;
 			short revents = _poll_fds[i].revents;
 			Client* client = getClientByFd(fd);
 
-			if (revents == 0) // no activity
+			if (revents == 0)
 				continue;
-			if (revents & (POLLHUP | POLLERR)) { // errors/disconnections
+			if (revents & (POLLHUP | POLLERR)) {
 				if (fd != _listenSocket)
 					removeClient(fd);
 				continue;
 			}
-			if (revents & POLLIN) { // incoming client activity
+			if (revents & POLLIN) {
 				if (fd == _listenSocket)
 					handleNewConnection();
 				else
 					handleClientMessage(fd);
 			}
-			client = getClientByFd(fd); // re-fetch client
-			if (!client) // check if client disconnected
+			client = getClientByFd(fd);
+			if (!client)
 				continue;
-			if (revents & POLLOUT) { // client ready to receive
-				client->flushMessage(); // send message
+			if (revents & POLLOUT) {
+				client->flushMessage();
 				if (!client->hasQueuedMessage())
 					disablePollout(fd);
 			}
@@ -178,37 +175,13 @@ void Server::handleNewConnection(void) {
 	_poll_fds.push_back(clientPollFd);
 }
 
-void Server::destroyChannel(Channel* channel) {
-	if (!channel)
-		return ;
-
-	std::string channelName = channel->getName();
-	for (std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); ++it)
-	{
-		if (*it == channel)
-		{
-			delete *it;
-			_channels.erase(it);
-			std::cout << "destroyChannel destroyed channel : " << channelName << std::endl;
-			return ;
-		}
-	}
-}
-
-void Server::queueToClient(Client* c, const std::string& msg)
-{
-	if (!c)
-		return ;
-	sendToClient(c->getFd(), msg);
-}
-
 void Server::handleClientMessage(int fd) {
 	char buffer[1024];
 	memset(buffer, 0, sizeof(buffer));
 
 	ssize_t readBytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
-	if (readBytes <= 0) // reading error / client disconnected
+	if (readBytes <= 0)
 		return (removeClient(fd));
 	buffer[readBytes] = '\0';
 
@@ -220,32 +193,30 @@ void Server::handleClientMessage(int fd) {
 	client->appendToBuffer(buffer, readBytes);
 
 	while (client->hasCompleteMessage()) {
-		std::string raw = client->extractMessage(); // extract single message
-		std::cout  << "Processing: " << raw << std::endl;
+		std::string raw = client->extractMessage();
+		std::cout  << "Incoming message from Client fd=" << fd << " => " << raw << std::endl;
 
-		if (raw.size() > IRC_MESSAGE_MAX_LENGTH) // Message is too long ERR_INPUTTOOLONG 417
+		if (raw.size() > IRC_MESSAGE_MAX_LENGTH)
 			sendNumericReply(client, "417", "", "Input line was too long");
 		else {
 			Message msg;
-			msg.parse(raw); // parse single message
-			handleCommand(client, msg); // execute single command
+			msg.parse(raw);
+			handleCommand(client, msg);
 
-			client = getClientByFd(fd); // re-fetch pointer
-			if (!client) {
-				std::cout << "Client removed, stopping message processing" << std::endl;
+			client = getClientByFd(fd);
+			if (!client)
 				return;
-			}
 		}
 	}
 }
 
-void Server::removeClient(int fd) { // client removal upon disconnection
-	std::map<int, Client*>::iterator it = _clients.find(fd); // delete Client object
+void Server::removeClient(int fd) {
+	std::map<int, Client*>::iterator it = _clients.find(fd);
 	if (it != _clients.end()) {
 		delete it->second;
 		_clients.erase(it);
 	}
-	for (size_t i = 0; i < _poll_fds.size(); i++) { // remove Client fd from pollfd vector
+	for (size_t i = 0; i < _poll_fds.size(); i++) {
 		if (_poll_fds[i].fd == fd) {
 			_poll_fds.erase(_poll_fds.begin() + i);
 			break;
@@ -292,6 +263,12 @@ void Server::disablePollout(int fd) {
 	}
 }
 
+void Server::queueToClient(Client* c, const std::string& msg) {
+	if (!c)
+		return ;
+	sendToClient(c->getFd(), msg);
+}
+
 Channel* Server::getChannelByName(const std::string& name) {
 	for (size_t i = 0; i < _channels.size(); i++) {
 		if (_channels[i]->getName() == name)
@@ -315,8 +292,7 @@ Client* Server::getClientByFd(int fd) {
 	return it->second;
 }
 
-Client* Server::getClientByName(std::string& name)
-{
+Client* Server::getClientByName(std::string& name) {
 	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		if ((*it).second->getNickname() == name)

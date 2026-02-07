@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/25 11:14:49 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/25 16:52:06 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 14:09:29 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,8 @@
 #include "Message.hpp"
 #include <iostream>
 
-void Server::handlePing(Client* client, const Message& msg) { // reply to PING by sending PONG
-	if (!client->isRegistered() && !client->isAuthenticated()) // clients shouldn't PING during connection registration
+void Server::handlePing(Client* client, const Message& msg) {
+	if (!client->isRegistered() && !client->isAuthenticated())
 		return;
 	std::string token;
 	if (msg._params.empty())

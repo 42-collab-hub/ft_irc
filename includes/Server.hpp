@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/07 12:56:52 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 14:29:52 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,8 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "Message.hpp"
-#include <netinet/in.h> // for holding the IP address & port - contains structure and variable definitions
-#include <arpa/inet.h> // inet_pton and similar
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <string>
 #include <vector>
 #include <map>
@@ -39,19 +39,17 @@ private:
 	std::vector<pollfd> 	_poll_fds;
 	std::vector<Channel*>	_channels;
 
-	static Server*			_instance; // static pointer to the Server object
-	bool					_running; // main loop flag
+	static Server*			_instance;
+	bool					_running;
 
 	Server(const Server& src);
 	Server& operator=(const Server& other);
 
 	void createServerSocket(void);
-	void bindSocket(void);
-
 	void setServerCreationTime(void);
+	void bindSocket(void);
 	void handleNewConnection(void);
 	void checkRegistration(Client* client);
-	void sendWelcome(Client* client);
 	void handleClientMessage(int fd);
 	void removeClient(int fd);
 	void handleCommand(Client* client, const Message& msg);
@@ -59,6 +57,7 @@ private:
 	void sendToClient(int fd, const std::string& message);
 	void handlePass(Client* client, const Message& msg);
 	void handleCap(Client* client, const Message& msg);
+	void sendWelcome(Client* client);
 	void handleNick(Client* client, const Message& msg);
 	bool isTakenNickname(Client* client, const std::string& newNickname);
 	void handleUser(Client* client, const Message& msg);
@@ -81,10 +80,8 @@ private:
 	void destroyChannel(Channel* channel);
 	void handleJoin(Client* client, const Message& msg);
 	void sendJoinMessage(Client* client, Channel* channel);
-
 	void shutdownServer(void);
-	
-	// signal handling
+
 	static void registerSignalHandlers(void);
 	static void signalHandler(int signum);
 
@@ -93,7 +90,6 @@ private:
 	Channel*	getChannelByName(const std::string& name); // double
 	Client* 	getClientByName(std::string& name);
 	Channel* 	getChannel(const std::string& name);
-
 	void 		enablePollout(int fd);
 	void 		disablePollout(int fd);
 
@@ -103,6 +99,7 @@ public:
 	void init();
 	void run();
 	void queueToClient(Client* c, const std::string& msg);
+
 };
 
 #endif

@@ -6,32 +6,32 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 17:40:10 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/01/31 13:48:32 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 13:58:02 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "args.hpp"
 #include <iostream>
-#include <cstdlib> // std::strtol
-#include <cctype> // std::isspace
-#include <cstring> // std::strlen
-#include <cerrno> // errno
+#include <cstdlib>
+#include <cctype>
+#include <cstring>
+#include <cerrno>
 
 bool validPort(const char* str, int& port) {
 	if (str == NULL || str[0] == '\0')
 		return false;
 
-	size_t len = std::strlen(str); // strict input, no leading/trailing spaces
+	size_t len = std::strlen(str);
 	if (std::isspace(str[0]) || std::isspace(str[len - 1]))
 		return false;
 
 	char* endptr;
 	errno = 0;
-	long value = std::strtol(str, &endptr, 10); // convert to numeric value
+	long value = std::strtol(str, &endptr, 10);
 	if (*endptr != '\0' || errno == ERANGE)
 		return false;
 
-	if (value < 1 || value > 65535) // valid port range 1-65535
+	if (value < 1 || value > 65535)
 		return false;
 	port = static_cast<int>(value);
 	return true;
