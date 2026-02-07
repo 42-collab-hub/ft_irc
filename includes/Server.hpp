@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/05 20:32:14 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/02/07 04:36:39 by gholloco         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ private:
 	void handlePing(Client* client, const Message& msg);
 	void handlePart(Client* client, const Message& msg);
 	void handleTopic(Client* client, const Message& msg);
+	void sendTopicInfo(Client* client, Channel* channel);
 	void handleInvite(Client* client, const Message& msg);
 	void handleKick(Client* client, const Message& msg);
 	void handleMode(Client* client, const Message& msg);
