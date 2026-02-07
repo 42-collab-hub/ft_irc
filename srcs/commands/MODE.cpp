@@ -6,13 +6,14 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 13:32:19 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/06 21:28:19 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/02/07 12:35:10 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 #include "Client.hpp"
 #include "Message.hpp"
+#include "Channel.hpp"
 #include <cstdlib>
 
 static bool needsParam(char m, bool adding)
@@ -49,75 +50,95 @@ static void appendAppliedMode(std::string& appliedModes, char& lastSign, bool ad
 	appliedModes += mode;
 }
 
-void Server::handleMode(Client* client, const Message& msg) {
-	if (!client->isRegistered()) {
-		sendNumericReply(client, "451", "", "You have not registered");
+void Server::handleModeK(bool adding, Channel* channel, std::string& appliedModes, std::string& appliedParams, char& lastSign, std::string param) {
+	if (adding)
+		channel->setKey(param);
+	else
+		channel->unsetKey();
+
+	appendAppliedMode(appliedModes, lastSign, adding, 'k');
+	if (adding)
+		appliedParams += " " + param;
+
+}
+
+void Server::handleModeL(bool adding, Channel* channel, std::string& appliedModes, std::string& appliedParams, char& lastSign, std::string param, Client* client) {
+	if (adding) {
+		if (!isUnsignedNumber(param)) {
+			sendNumericReply(client, "461", "MODE", "Not enough parameters");
+			return;
+		}
+		int limit = std::atoi(param.c_str());
+		if (limit == 0) {
+			sendNumericReply(client, "461", "MODE", "Not enough parameters");
+			return;
+		}
+
+		channel->setUserLimit(limit);
+		appendAppliedMode(appliedModes, lastSign, adding, 'l');
+		appliedParams += " " + param;
+	}
+	else {
+		channel->unsetUserLimit();
+		appendAppliedMode(appliedModes, lastSign, adding, 'l');
+	}
+}
+
+void Server::handleModeO(bool adding, Channel* channel, std::string& appliedModes, std::string& appliedParams, char& lastSign, std::string param, Client* client) {
+	std::string channelName = channel->getName();
+	Client* target = getClientByName(param);
+	if (!target) {
+		sendNumericReply(client, "401", param, "No such nick");
 		return;
 	}
-	if (msg._params.empty() || msg._params[0].empty() || msg._params[0][0] != '#') // ignore all non-channel mode commands
+	if (!channel->isMember(target)) {
+		sendNumericReply(client, "441", param + " " + channelName, "They aren't on that channel");
 		return;
-
-	std::string channelName = msg._params[0];
-	Channel* chan = getChannel(channelName);
-
-	// TODO:: delete these debug prints
-	// std::cout << ""
-
-	if (!chan)
-	{
-		sendNumericReply(client, "403", channelName, ":No such channel");
-		return ;
-	}
-	if (!chan->isMember(client))
-	{
-		sendNumericReply(client, "442", channelName, ":You're not on that channel");
-		return ;
-	}
-	if (msg._params.size() == 1) // requesting MODES, doesn't need to be an operator
-	{
-		sendToClient(client->getFd(), ":server 324 " + client->getNickname() + " " + channelName + " " + chan->getModes());
-		return ;
-	}
-	if (!chan->isOperator(client))
-	{
-		sendNumericReply(client, "482", channelName, ":You're not channel operator");
-		return ;
-	}
-	if (msg._params[1].empty()) 
-	{ 
-		sendNumericReply(client, "461", msg._command, "Not enough parameters");
-		return ;
 	}
 
-	const std::string& modes = msg._params[1];
+	bool ok = false;
+	if (adding)
+		ok = channel->addOperator(target);
+	else
+		ok = channel->removeOperator(target);
+
+	if (ok) {
+		appendAppliedMode(appliedModes, lastSign, adding, 'o');
+		appliedParams += " " + param;
+	}
+}
+
+void Server::setChannelModes(Channel* channel, Client* client, const Message& msg) {
+	std::string modestring = msg._params[1];
 	size_t paramIndex = 2;   
 	bool adding = true;
-	std::string appliedModes;
-	std::string appliedParams;
+	std::string appliedModes = "";
+	std::string appliedParams = "";
 	char lastSign = 0;
 
-	for (size_t i = 0; i < modes.size(); ++i)
+	std::string channelName = channel->getName();
+
+	for (size_t i = 0; i < modestring.size(); ++i)
 	{
-		char m = modes[i];
+		char m = modestring[i];
 
 		if (m == '+') { adding = true; continue; }
 		if (m == '-') { adding = false; continue; }
 
-		if (m != 'i' && m != 't' && m != 'k' && m != 'l' && m != 'o')
-		{
+		if (m != 'i' && m != 't' && m != 'k' && m != 'l' && m != 'o') {
 			std::string mm(1, m);
-			sendNumericReply(client, "472", mm, ":is unknown mode char to me");
+			sendNumericReply(client, "472", mm, "is unknown mode char to me");
 			continue;
 		}
 
 		bool wantParam = needsParam(m, adding);
 		std::string param;
-
+		
 		if (wantParam)
 		{
 			if (paramIndex >= msg._params.size())
 			{
-				sendNumericReply(client, "461", "MODE", ":Not enough parameters");
+				sendNumericReply(client, "461", "MODE", "Not enough parameters");
 				break;
 			}
 			param = msg._params[paramIndex++];
@@ -125,76 +146,62 @@ void Server::handleMode(Client* client, const Message& msg) {
 
 		if (m == 'i' || m == 't')
 		{
-			chan->setMode(m, adding);
+			channel->setMode(m, adding);
 			appendAppliedMode(appliedModes, lastSign, adding, m);
 		}
 		else if (m == 'k')
-		{
-			if (adding)
-				chan->setKey(param);
-			else
-				chan->unsetKey();
-
-			appendAppliedMode(appliedModes, lastSign, adding, 'k');
-			if (adding)
-				appliedParams += " " + param;
-		}
+			handleModeK(adding, channel, appliedModes, appliedParams, lastSign, param);
 		else if (m == 'l')
-		{
-			if (adding)
-			{
-				if (!isUnsignedNumber(param))
-				{
-					sendNumericReply(client, "461", "MODE", ":Not enough parameters");
-					break;
-				}
-				int limit = std::atoi(param.c_str());
-				if (limit == 0)
-				{
-					sendNumericReply(client, "461", "MODE", ":Not enough parameters");
-					break;
-				}
-
-				chan->setUserLimit(limit);
-				appendAppliedMode(appliedModes, lastSign, adding, 'l');
-				appliedParams += " " + param;
-			}
-			else
-			{
-				chan->unsetUserLimit();
-				appendAppliedMode(appliedModes, lastSign, adding, 'l');
-			}
-		}
+			handleModeL(adding, channel, appliedModes, appliedParams, lastSign, param, client);
 		else if (m == 'o')
-		{
-			Client* target = getClientByName(param);
-			if (!target)
-			{
-				sendNumericReply(client, "401", param, ":No such nick");
-				continue;
-			}
-			if (!chan->isMember(target))
-			{
-				sendNumericReply(client, "441", param + " " + channelName, ":They aren't on that channel");
-				continue;
-			}
-
-			bool ok = false;
-			if (adding)
-				ok = chan->addOperator(target);
-			else
-				ok = chan->removeOperator(target);
-
-			if (ok)
-			{
-				appendAppliedMode(appliedModes, lastSign, adding, 'o');
-				appliedParams += " " + param;
-			}
-		}
+			handleModeO(adding, channel, appliedModes, appliedParams, lastSign, param, client);
 	}
 	if (!appliedModes.empty())
 	{
 		std::string out = ":" + client->getPrefix() + " MODE " + channelName + " " + appliedModes + appliedParams;
-		chan->broadcast(*this, out, NULL);
+		channel->broadcast(*this, out, NULL);
 	}
+}
+
+void Server::viewChannelModes(Channel* channel, Client* client) {
+	std::string channelName = channel->getName();
+	std::string channelModes = channel->getModes();
+	sendNumericReply(client, "324", channelName + " " + channelModes, "");
+}
+
+void Server::handleMode(Client* client, const Message& msg) {
+	if (!client->isRegistered()) {
+		sendNumericReply(client, "451", "", "You have not registered");
+		return;
+	}
+	if (msg._params.size() < 1 || msg._params[0].empty()) {
+		sendNumericReply(client, "461", msg._command, "Not enough parameters");
+		return;
+	}
+
+	std::string channelName = msg._params[0];
+	if (msg._params[0][0] != '#')
+		return;
+
+	Channel* chan = getChannel(channelName);
+	if (!chan) {
+		sendNumericReply(client, "403", channelName, "No such channel");
+		return ;
+	}
+	if (!chan->isMember(client)) {
+		sendNumericReply(client, "442", channelName, "You're not on that channel");
+		return ;
+	}
+
+	if (msg._params.size() == 1 || (msg._params.size() > 1 && msg._params[1].empty())) {
+		viewChannelModes(chan, client);
+		return ;
+	}
+
+	if (!chan->isOperator(client)) {
+		sendNumericReply(client, "482", channelName, "You're not channel operator");
+		return ;
+	}
+
+	setChannelModes(chan, client, msg);
 }

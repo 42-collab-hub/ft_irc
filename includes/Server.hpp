@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 18:33:59 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/07 04:36:39 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/02/07 11:08:58 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,12 @@ private:
 	void handleInvite(Client* client, const Message& msg);
 	void handleKick(Client* client, const Message& msg);
 	void handleMode(Client* client, const Message& msg);
+	void viewChannelModes(Channel* channel, Client* client);
+	void handleModeK(bool adding, Channel* channel, std::string& appliedModes, std::string& appliedParams, char& lastSign, std::string param);
+	void handleModeL(bool adding, Channel* channel, std::string& appliedModes, std::string& appliedParams, char& lastSign, std::string param, Client* client);
+	void handleModeO(bool adding, Channel* channel, std::string& appliedModes, std::string& appliedParams, char& lastSign, std::string param, Client* client);
+	
+	void setChannelModes(Channel* channel, Client* client, const Message& msg);
 	void destroyChannel(Channel* channel);
 	// void handleMsg(Client* client, const Message& msg);
 	void checkRegistration(Client* client);

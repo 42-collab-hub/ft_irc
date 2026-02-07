@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/07 04:36:10 by gholloco         ###   ########.fr       */
+/*   Updated: 2026/02/07 12:23:37 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -311,6 +311,8 @@ void Server::sendNumericReply(Client* client, const std::string& code, const std
 	sendToClient(client->getFd(), reply);
 }
 
+
+
 void Server::handleCommand(Client* client, const Message& msg) {
 	std::string cmd = msg._command;
 
@@ -332,8 +334,9 @@ void Server::handleCommand(Client* client, const Message& msg) {
 		handleKick(client, msg);
 	else if (cmd == "MODE")
 		handleMode(client, msg);
-	// else if (cmd == "WHOIS")
-	// 	handleWhois(client, msg);
+	else if (cmd == "WHOIS")
+		sendNumericReply(client, "318", client->getNickname(), "End of /WHOIS list");
+		// handleWhois(client, msg);
 	// else if (cmd == QUIT)
 		// handleQuit(client, msg);
 	// else if (cmd == "PRIVMSG")
