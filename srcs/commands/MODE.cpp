@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/30 13:32:19 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/07 13:17:29 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 14:51:28 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,14 @@
 #include "Message.hpp"
 #include "Channel.hpp"
 #include <cstdlib>
+
+static bool isWhitespace(const std::string& str) {
+    for (size_t i = 0; i < str.length(); ++i) {
+        if (!std::isspace(str[i]))
+            return false;
+    }
+    return true;
+}
 
 static bool needsParam(char m, bool adding)
 {
@@ -136,7 +144,12 @@ void Server::setChannelModes(Channel* channel, Client* client, const Message& ms
 		
 		if (wantParam)
 		{
-			if (paramIndex >= msg._params.size())
+			if (paramIndex >= msg._params.size()) {
+				sendNumericReply(client, "461", "MODE", "Not enough parameters");
+				break;
+	
+			}
+			if (isWhitespace(msg._params[paramIndex]))
 			{
 				sendNumericReply(client, "461", "MODE", "Not enough parameters");
 				break;
