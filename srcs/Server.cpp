@@ -6,7 +6,7 @@
 /*   By: mglikenf <mglikenf@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/10 15:17:48 by mglikenf          #+#    #+#             */
-/*   Updated: 2026/02/07 14:28:18 by mglikenf         ###   ########.fr       */
+/*   Updated: 2026/02/07 15:11:13 by mglikenf         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -212,16 +212,28 @@ void Server::handleClientMessage(int fd) {
 
 void Server::removeClient(int fd) {
 	std::map<int, Client*>::iterator it = _clients.find(fd);
-	if (it != _clients.end()) {
-		delete it->second;
-		_clients.erase(it);
+	if (it == _clients.end())
+		return;
+	
+	Client* client = it->second;
+
+	for (std::vector<Channel*>::iterator chan_it = _channels.begin(); 
+	     chan_it != _channels.end(); ++chan_it) {
+		if ((*chan_it)->isMember(client)) {
+			(*chan_it)->removeMember(client);
+		}
 	}
+
+	delete client;
+	_clients.erase(it);
+
 	for (size_t i = 0; i < _poll_fds.size(); i++) {
 		if (_poll_fds[i].fd == fd) {
 			_poll_fds.erase(_poll_fds.begin() + i);
 			break;
 		}
 	}
+	
 	close(fd);
 	std::cout << "Client " << fd << " disconnected and successfully removed" << std::endl;
 }
